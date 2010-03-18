@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse-pydev version="1.0"?>
+
+<pydev_project>
+<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
+<path>/pGIS/src</path>
+</pydev_pathproperty>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.6</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
+<pydev_variables_property name="org.python.pydev.PROJECT_VARIABLE_SUBSTITUTION">
+<key>ARC_HOME</key>
+<value>/usr/lib/arcgis</value>
+<key>GRASS_HOME</key>
+<value>/usr/lib/grass64</value>
+</pydev_variables_property>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>${GRASS_HOME}/bin</path>
+<path>${GRASS_HOME}/etc</path>
+<path>${GRASS_HOME}/etc/python</path>
+<path>${GRASS_HOME}/scripts</path>
+<path>${ARC_HOME}/Bin</path>
+</pydev_pathproperty>
+</pydev_project>
