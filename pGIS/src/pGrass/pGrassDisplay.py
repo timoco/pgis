@@ -29,6 +29,7 @@ class gDisplay():
         self.__dRast='d.rast'
         self.__dLeg='d.legend'
         self.__dNViz='nviz'
+        self.__gEnv='g.gisenv'
         self.__curMon=self.__getCurMon()
         
     #Private     
@@ -65,11 +66,21 @@ class gDisplay():
         INPUT: map to be outputted as PNG
         OPT INPUT : [output Directory] default is from config
         '''
+        outFile='%s.png' %(outMap)
+#       export GRASS_PNGFILE
+#        env=grass.gisenv()
+        pngVar='GRASS_PNGFILE=%s' %(outFile)
+        grass.run_command(self.__gEnv,set=pngVar)
+#        env['GRASS_PNGFILE']=
+        
         if len(outDir) < 1:
             outDir='output path from ini'
             
         outMapPng=outMap[0]
-        grass.run_command(self.__dOutFile, out=r'%s/%s' % (outDir,outMapPng), format='png')
+#        grass.run_command(self.__dMon,start='PNG')
+#        grass.run_command(self.__dOutFile, out=r'%s/%s' % (outDir,outMapPng), format='png')
+        self.dRast(outMap)
+        grass.run_command(self.__dMon,stop='PNG')
             
     def dRast(self,rast,loc='2,40,2,6'):
         '''
@@ -119,15 +130,25 @@ if __name__=='__main__':
     debug(start_main)
     #-- App Code start --#
     grassConf=configParser()
-    grassConf.read('/Users/TPM/MyDocs/courses/spr2010/mea582_GeoMod/wkspc/src/app.ini')
+    grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\pGIS_Test\src\app.ini')
     grassSect=grassConf.items('pGRASS')
+    gDisp=gDisplay()
+#    grass.run_command('d.mon',start='PNG')
+    
+#    curMon = grass.read_command('d.mon','L')
+#    if curMon.startswith('No'):
+#        retVal='NA'
+#    else:
+#        retVal='%s'%(curMon[-3:-1])
+#    pp(curMon)
+##    gDisp.startMon()
 #    testGisApp=pGIS.gisApp('geomod')
 #    grassGisApp=testGisApp.grassApp()
 #    grassEnvVars=grassGisApp.grassEnv
        
        
        
-    displ=gDisplay()
+    
 #    displ.startMon()
 #    displ.eraseMon()
 #    displ.stopMon()

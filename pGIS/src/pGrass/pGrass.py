@@ -32,6 +32,7 @@ class grassApp():
         #set the grass.general (g.<name>) functions
         self.__gMList='g.mlist'
         self.__gReg='g.region'
+        self.__gEnv='g.gisenv'
         
         self.__home=os.environ['HOME']
         self.__grassConfLi=grassConfigSect
@@ -57,7 +58,8 @@ class grassApp():
         
         envFile='%s%s' % (self.__home,self.__grassEnvFile)
         envDict={}
-        grassFile=open(envFile)
+#        grassFile=open(raw_input(envFile),'r')
+        grassFile=open(envFile,'rb')
         for line in grassFile:
             kv=(line.rstrip()).split('=')
             if len(kv) > 1:
@@ -74,7 +76,9 @@ class grassApp():
         INPUT: GRASS Env Vars dictionary
         '''
         for k,v in envDict.iteritems():
-            os.environ[k]=v
+#            os.environ[k]=v
+            kv='%s=%s' %(k,v)
+            grass.run_command(self.__gEnv,set=kv)
     
     def __listRast(self):
         '''Get the all the rasters in the GRASS GIS DB.'''
@@ -146,9 +150,39 @@ if __name__=='__main__':
     
     from ConfigParser import ConfigParser as configParser
     grassConf=configParser()
-    grassConf.read('/Users/TPM/MyDocs/courses/spr2010/mea582_GeoMod/wkspc/src/app.ini')
+    grassConf.read('C:/MyDocs/projects/eclipse_wkspc/pGIS_Test/src/app.ini')
     grassSect=grassConf.items('pGRASS')
     grassGisApp=grassApp(grassSect)
     grassEnvVars=grassGisApp.grassEnv
+    pp(grassEnvVars)
+#    pp(grass.gisenv())
+#    pp(grassGisApp.grassRastList)
+    rList=grassGisApp.grassRastList
+    testR='upperneuse@tmorriss'
+    pp(rList[rList.index(testR)])
+    
+#    gRast=grassGisApp.gRaster()
+#    pp(gRast.rasterReport(testR))
+
+    gDisp=grassGisApp.gDisplay()
+#    gDisp.outPNG(testR,r'C:/MyDocs')
+    grsEnv=grass.gisenv()
+    gDisp.outPNG(testR, 'C:/MyDocs')
+    
+        
+#    grass.run_command('g.gisenv',set="GISDBASE=C:\\MyDocs\\projects\\GISDBASE")
+#    grass.run_command('g.gisenv',set="LOCATION_NAME=nc_res")
+#    grass.run_command('g.gisenv',set="MAPSET=tmorriss")
+##    GISDBASE: C:\MyDocs\projects\GISDBASE
+##    LOCATION_NAME: nc_res
+##    MAPSET: tmorriss
+##    GRASS_GUI: wxpython
+#    loc=grass.read_command('g.gisenv',get='LOCATION_NAME')
+#    locPath=grass.read_command('g.gisenv',get='LOCATION')
+#    pp(loc)
+#    pp(locPath)
+#    pp(grass.read_command('g.gisenv'))
+#    pp(os.environ["GISRC"])
+#    pp()
     #-- App Code end --#
     debug(end_main)
