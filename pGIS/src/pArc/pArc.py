@@ -28,6 +28,22 @@ class arcApp():
     def __init__(self,appConfigSect):
         self.__home=os.environ['HOME']
         self.__appConfLi=appConfigSect
+        self.__gp=self.__createGP()
+        
+        
+    def __createGP(self):
+        '''create the ArcGIS geoprocessor object
+        OUTPUT: gp
+        '''
+        gp=arcgisscripting.create(9.3)
+        return gp
+        
+    #CLASS PROPERTIES
+    @property
+    def getGP(self):
+        '''return the ArcGIS geoprocessor object'''
+        return self.__gp
+        
 # #####################################
 #       ------ Functions --------
 # #####################################
@@ -56,9 +72,11 @@ if __name__=='__main__':
        from ConfigParser import ConfigParser as configParser
        
        arcConf=configParser()
-       arcConf.read('/Users/TPM/MyDocs/dev/eclipse/workspace/ncres_pydev/src/app.ini')
+       arcConf.read('C:/MyDocs/projects/eclipse_wkspc/pGIS_Test/src/app.ini')
        arcSect=arcConf.items('pARC')
        arcApp=arcApp(arcSect)
+       arcGP=arcApp.getGP
+       
 #       pp(arcApp.__home)
 #       pp(sys.path)
        #-- App Code end --#

@@ -198,9 +198,14 @@ if __name__=='__main__':
     appID_geomod='geomod'
     appID='pgis_test'
     app=gisApp(appID)
-    grass=app.grassApp
+    pp(app.appAppRoot)
+    
     arc=app.arcApp
-    pp(app.appData)
+    gp=arc.getGP
+    
+#    grass=app.grassApp
+#    arc=app.arcApp
+#    pp(app.appData)
 #    pp(grass.grassEnv)
 #    pp(app.hasEmail)
 #    pp(arc)
@@ -210,5 +215,4 @@ if __name__=='__main__':
 ##        
     
     #-- App Code end --#
-    
     debug(end_main)
