@@ -29,12 +29,73 @@ class gRast():
         self.__rWatershed='r.watershed'
         self.__rReport='r.report'
         self.__rInfo='r.info'
+        self.__rToV='r.to.vect'
+        self.__rInArc='r.in.arc'
+        self.__rInGDAL='r.in.gdal'
+        self.__rExt='r.external'
+        self.__rMask='r.mask'
         
         #Class vals
         
         #Class properties
         
-    
+    #Public Functions
+    def setMask(self,inMask):
+        '''
+        Sets the processing mask for raster processing (r.mask)
+        INPUT: map 
+        '''
+        grass.run_command(self.__rMask,input=inMask)
+    def delMask(self):
+        '''Deletes raster processing mask'''
+        grass.run_command(self.__rMask,'r')
+        
+    def linkRast(self,inDir,inRast):
+        '''
+        Links external raster with GRASS DB (r.external)
+        INPUT: dir (external raster dir)
+               raster (external raster)
+        '''
+        curDir=os.getcwd()
+        if os.path.exists(inDir):
+            os.chdir(inDir)
+        rastNm=inRast
+        if inRast.endswith('.asc'):
+            rastNm=inRast[:-4]   #strip .asc
+        grass.run_command(self.__rExt,'o',input=inRast,output=rastNm)
+        os.chdir(curDir)
+
+    def importRast(self,inDir,inRast):
+        '''
+        Import raster into grassDB (binary) (r.in.arc)
+        INPUT: raster
+        '''
+        curDir=os.getcwd()
+        if os.path.exists(inDir):
+            os.chdir(inDir)
+#        else:
+#            yield
+        rastNm=inRast
+        if inRast.endswith('.asc'):
+            rastNm=inRast[:-4]   #strip .asc
+            grass.run_command(self.__rInArc,input=inRast,output=rastNm)
+        else:
+            grass.run_command(self.__rInGDAL,'o',input=inRast,output=rastNm)
+        os.chdir(curDir)
+        
+    def convRtoV(self,inRast,vType='area'):
+        '''
+        Convert raster to vector (r.to.vect)
+        INPUT: raster
+               vector type (point, line, area) 
+        OUTPUT: vector name
+        '''
+        #Vect names can not contain . -> convert to _
+        outVect=inRast.replace('.','_')
+        grass.run_command(self.__rToV,input=inRast,output=outVect,feature=vType)
+        
+        return outVect
+#        r.to.vect -b in=$basin out="${catch}" feature=area
     def calcWatershed(self,inRast,inThresh,inDA):
         '''
             Run r.watershed GRASS function.
@@ -78,6 +139,7 @@ class gRast():
             OUTPUT: raster report
         '''
         return grass.read_command(self.__rReport,flags='-q',map=inRast)
+    
 # #####################################
 #       ------ Functions --------
 # #####################################
@@ -105,7 +167,7 @@ if __name__=='__main__':
        from ConfigParser import ConfigParser as configParser
        
        grassConf=configParser()
-       grassConf.read('/Users/TPM/MyDocs/dev/eclipse/workspace/ncres_pydev/src/app.ini')
+       grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\ncres_app\src\app.ini')
        grassSect=grassConf.items('pGRASS')
        
        rast=gRast()

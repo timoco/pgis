@@ -52,6 +52,7 @@ class gisApp():
         self.__rastDir='%s%s' % (self.__home,self.__appDataDict['rast_data'])
         self.__vectDir='%s%s' % (self.__home,self.__appDataDict['vect_data'])
         self.__csvDir='%s%s' % (self.__home,self.__appDataDict['csv_data'])
+        self.__outDir='%s%s' % (self.__home,self.__appDataDict['out_dir'])
         
         if self.__hasGrass:
             self.__grassApp=self.__createGrassApp()
@@ -119,6 +120,10 @@ class gisApp():
     def appCsvDir(self):
         '''return the pGIS implementation csv data dir'''
         return self.__csvDir
+    @property
+    def appOutDir(self):
+        '''return the pGIS implementation output data dir'''
+        return self.__outDir
     
     @property
     def appData(self):
@@ -199,7 +204,7 @@ if __name__=='__main__':
     appID='pgis_test'
     app=gisApp(appID)
     pp(app.appAppRoot)
-    
+    pp(app.appOutDir)
     arc=app.arcApp
     gp=arc.getGP
     
