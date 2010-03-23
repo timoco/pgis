@@ -31,6 +31,7 @@ class gVect():
         self.__vReport='v.report'
         self.__vDbAddCol='v.db.addcol'
         self.__vToDb='v.to.db'
+        self.__vSel='v.db.select'
         
         
         #Class vals
@@ -58,7 +59,14 @@ class gVect():
         '''
         grass.run_command(self.__vToDb,map=inVect,option=valTyp,columns=colNm,units=valUnit)
         
-               
+    def vectSelect(self,inVect):
+        '''
+            Run v.db.select GRASS function.
+            INPUT: inVect (input vector)
+            OUTPUT: vector info
+        '''
+        return grass.read_command(self.__vSel,'r',map=inVect,fs=',')
+        
     def vectInfo(self,inVect):
         '''
             Run v.info GRASS function.
@@ -67,13 +75,13 @@ class gVect():
         '''
         return grass.read_command(self.__vInfo,flags='-q',map=inVect)
     
-    def vectReport(self,inVect):
+    def vectReport(self,inVect,opt='area',unit='mi'):
         '''
             Run v.report GRASS function.
             INPUT: inVect (input vector)
             OUTPUT: vector report
         '''
-        return grass.read_command(self.__vReport,map=inVect)
+        return grass.read_command(self.__vReport,map=inVect,option=opt,units=unit)
 # #####################################
 #       ------ Functions --------
 # #####################################

@@ -36,7 +36,6 @@ class grassApp():
         self.__gEnv='g.gisenv'
         self.__gMapset='g.mapset'
         self.__gMapsets='g.mapsets'
-        
         self.__home=os.environ['HOME']
         self.__grassConfLi=grassConfigSect
         for tup in self.__grassConfLi:
@@ -245,7 +244,23 @@ if __name__=='__main__':
 #            grass.run_command('g.copy',rast=cpCMD)
 #            if not cnty.endswith('NC'):
 #                gRast.importRast(root, cnty)
-    pp(grassGisApp.getCurMapset())       
+#    pp(grassGisApp.getCurMapset())   
+    rast=grassGisApp.grassCurMapsetRastList
+#    pp(rast)
+    
+    #clean
+    def cleanWshed(self):
+        wshedRStr=grass.read_command('g.mlist','m',type='rast',separator=',',pattern='*.*')
+        wshedRStr=wshedRStr.rstrip('\n')
+        wshedRList=wshedRStr.split(',')
+        for wshedR in wshedRList:
+            pp(wshedR)   
+            grass.run_command('g.remove','f',rast=wshedR)
+        
+#    pp(grass.read_command('g.gisenv',get='GRASS_OVERWRITE'))
+#    grsVerb='GRASS_VERBOSE=0'
+#    grass.run_command('g.gisenv',set=grsVerb)
+#    pp(grass.read_command('g.gisenv',get='GRASS_VERBOSE'))
 #    if len(subFullNm) > 2:
 #        sub= ('%s%s%s' % ((subFullNm[0])[:1], \
 #                           ((subFullNm[1]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:2], \

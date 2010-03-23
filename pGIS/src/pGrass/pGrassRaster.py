@@ -27,16 +27,18 @@ class gRast():
     def __init__(self):
         #set the grass.raster (r.<name>) functions
         self.__rWatershed='r.watershed'
+        self.__rLake='r.lake'
         self.__rReport='r.report'
         self.__rInfo='r.info'
         self.__rToV='r.to.vect'
+        self.__rThin='r.thin'
         self.__rInArc='r.in.arc'
         self.__rInGDAL='r.in.gdal'
         self.__rExt='r.external'
         self.__rMask='r.mask'
         
         #Class vals
-        
+        self.__mask='NA'
         #Class properties
         
     #Public Functions
@@ -46,9 +48,12 @@ class gRast():
         INPUT: map 
         '''
         grass.run_command(self.__rMask,input=inMask)
+        self.__mask=inMask
     def delMask(self):
         '''Deletes raster processing mask'''
-        grass.run_command(self.__rMask,'r')
+        if self.__mask != 'NA':
+            grass.run_command(self.__rMask,'r')
+            
         
     def linkRast(self,inDir,inRast):
         '''
@@ -83,6 +88,7 @@ class gRast():
             grass.run_command(self.__rInGDAL,'o',input=inRast,output=rastNm)
         os.chdir(curDir)
         
+    
     def convRtoV(self,inRast,vType='area'):
         '''
         Convert raster to vector (r.to.vect)
@@ -90,13 +96,21 @@ class gRast():
                vector type (point, line, area) 
         OUTPUT: vector name
         '''
+        #thin lines
+        convRast=inRast
+        flag='s'
+        if vType=='line':
+            convRast='%s_tov' % (inRast)
+            flag='v'
+            grass.run_command(self.__rThin,input=inRast,output=convRast)
+            
         #Vect names can not contain . -> convert to _
         outVect=inRast.replace('.','_')
-        grass.run_command(self.__rToV,input=inRast,output=outVect,feature=vType)
+        grass.run_command(self.__rToV,flag,input=convRast,output=outVect,feature=vType)
         
         return outVect
 #        r.to.vect -b in=$basin out="${catch}" feature=area
-    def calcWatershed(self,inRast,inThresh,inDA):
+    def calcWatershed(self,inRast,inThresh,inDA,overwrt=False):
         '''
             Run r.watershed GRASS function.
             INPUT: inRast (input raster of elevation)
@@ -109,8 +123,8 @@ class gRast():
         rStream='%s.strms%s' % (inRast,inDA)
         rAccum='%s.accum%s' % (inRast,inDA) 
         rThresh=inThresh
-#        grass.run_command('g.region', rast=inRast)
-        grass.run_command(self.__rWatershed, '-o', elev=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh)
+
+        grass.run_command(self.__rWatershed, 'm',overwrite=overwrt, elev=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh, memory=1000)
         
         wshedDict={}
         wshedDict['elev']=inRast
@@ -121,7 +135,27 @@ class gRast():
         wshedDict['thres']=rThresh
         
         return wshedDict
-    
+    def createLake(self,inRast,inLvl,inX,inY):
+        '''
+            Run r.lake GRASS function.
+            INPUT: inRast (input raster of elevation)
+                    inLvl (fill level)
+                   inX (E coord point for fill)
+                   inY (N coord point for fill)
+            OUTPUT: outLake
+        '''
+#        #set the g.region and r.mask
+#        g.region rast=$dem
+#        r.mask input=$dem
+#        #create output product names
+#        elev=$dem
+#        lake="${dem}.lake_${IN_WTR_LVL}"
+#        r.lake dem=$elev lake=$lake wl=$IN_WTR_LVL seed=$IN_RST_SEED
+        outLake='%s.lake%s' % (inRast,inLvl)
+        seedXY='%s,%s' % (inX,inY)
+        grass.run_command(self.__rLake,dem=inRast,wl=inLvl,lake=outLake,xy=seedXY)
+        return outLake
+        
     def getRasterRes(self,inRast):
         '''
         Run r.info with -s flag for raster resolution
