@@ -52,8 +52,13 @@ class grassApp():
         self.__curLoc=self.__getCurLoc()
         self.__curMapset=self.__getCurMapset()
         self.__mapsets=self.__getMapsets()
-        self.__rastList=self.__listRast()
-        self.__curMapsetRastList=self.__listMapsetRast(self.__curMapset)
+        self.__rastList=self.__listDatasets('rast')
+        self.__curMapsetRastList=self.__listMapsetDatasets(self.__curMapset, 'rast')
+        self.__permMapsetRastList=self.__listMapsetDatasets('PERMANENT', 'rast')
+        self.__vectList=self.__listDatasets('vect')
+        self.__curMapsetVectList=self.__listMapsetDatasets(self.__curMapset, 'vect')
+        self.__permMapsetVectList=self.__listMapsetDatasets('PERMANENT', 'vect')
+        
         self.__region='NA'
                 
         #GRASS module wrapper classes
@@ -112,27 +117,25 @@ class grassApp():
             kv='%s=%s' %(k,v)
             grass.run_command(self.__gEnv,set=kv)
     
-    def __listRast(self):
-        '''Get the all the rasters in the GRASS GIS DB.'''
-        rastStr=grass.read_command(self.__gMList,'m',type='rast',separator=',')
-        rastStr=rastStr.rstrip('\n')
-        rastList=rastStr.split(',')
-             
-        return rastList
-    def __listMapsetRast(self,inMapset):
+    def __listDatasets(self,dsTyp):
+        '''Get the all the datasets in the GRASS GIS DB by data type'''
+        dsStr=grass.read_command(self.__gMList,'m',type=dsTyp,separator=',')
+        dsStr=dsStr.rstrip('\n')
+        dsList=dsStr.split(',')
+        return dsList
+    
+    def __listMapsetDatasets(self,inMapset,dsTyp):
         '''Get the all the rasters in the mapset '''
-        rastStr=grass.read_command(self.__gMList,type='rast',separator=',',mapset=inMapset)
-        rastStr=rastStr.rstrip('\n')
-        rastList=rastStr.split(',')
-             
-        return rastList
+        dsStr=grass.read_command(self.__gMList,type=dsTyp,separator=',',mapset=inMapset)
+        dsStr=dsStr.rstrip('\n')
+        dsList=dsStr.split(',')
+        return dsList
              
     #CLASS PROPERTIES
     @property
     def getMapsets(self): 
         '''return the Mapsets of the location and gisdb'''
         return self.__mapsets
-   
     def getCurMapset(self): 
         '''return the current Mapset'''
         return self.__curMapset
@@ -142,7 +145,6 @@ class grassApp():
             kv='%s=%s' %('MAPSET',inMapset)
             grass.run_command(self.__gEnv,set=kv)
             self.__curMapset=inMapset
-            
     curMapset=property(getCurMapset,setCurMapset)
     
     @property
@@ -177,6 +179,22 @@ class grassApp():
     def grassCurMapsetRastList(self):
         '''return the list of Rasters in the current GRASS GIS mapset'''
         return self.__curMapsetRastList
+    @property
+    def grassPermRastList(self):
+        '''return the list of Rasters in the PERMANENT GRASS GIS mapset'''
+        return self.__permMapsetRastList
+    @property
+    def grassVectList(self):
+        '''return the list of all vectors in the GRASS GIS'''
+        return self.__vectList
+    @property
+    def grassCurMapsetVectList(self):
+        '''return the list of vectors in the current GRASS GIS mapset'''
+        return self.__curMapsetVectList
+    @property
+    def grassPermVectList(self):
+        '''return the list of vectors in the PERMANENT GRASS GIS mapset'''
+        return self.__permMapsetVectList
     @property
     def gDisplay(self): 
         '''return the pGrassDisplay object'''
@@ -229,8 +247,8 @@ if __name__=='__main__':
     grassGisApp.setCurMapset('subs')
     gRast=grassGisApp.gRaster()
     #test import raster
-    gis_d=grassConf.get('data', 'gis_data')
-    inDir=r'C:/MyDocs/projects/nc_res/Application/proto/Data/output/elev/basin/nc80'
+#    gis_d=grassConf.get('data', 'gis_data')
+#    inDir=r'C:/MyDocs/projects/nc_res/Application/proto/Data/output/elev/basin/nc80'
 #    ncSecL=os.listdir(inDir)
 #    for ncSecD in ncSecL:
 #        if os.path.isdir('%s/%s'%(inDir,ncSecD)):
@@ -245,152 +263,70 @@ if __name__=='__main__':
 #            if not cnty.endswith('NC'):
 #                gRast.importRast(root, cnty)
 #    pp(grassGisApp.getCurMapset())   
-    rast=grassGisApp.grassCurMapsetRastList
-#    pp(rast)
-    
-    #clean
-    def cleanWshed(self):
-        wshedRStr=grass.read_command('g.mlist','m',type='rast',separator=',',pattern='*.*')
-        wshedRStr=wshedRStr.rstrip('\n')
-        wshedRList=wshedRStr.split(',')
-        for wshedR in wshedRList:
-            pp(wshedR)   
-            grass.run_command('g.remove','f',rast=wshedR)
-        
-#    pp(grass.read_command('g.gisenv',get='GRASS_OVERWRITE'))
-#    grsVerb='GRASS_VERBOSE=0'
-#    grass.run_command('g.gisenv',set=grsVerb)
-#    pp(grass.read_command('g.gisenv',get='GRASS_VERBOSE'))
-#    if len(subFullNm) > 2:
-#        sub= ('%s%s%s' % ((subFullNm[0])[:1], \
-#                           ((subFullNm[1]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:2], \
-#                           ((subFullNm[2]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:2]) \
-#               ).lower()
-#    elif len(subFullNm) > 1:
-#        sub= ('%s%s' % ((subFullNm[0])[:1], \
-#                         ((subFullNm[1]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:3]) \
-#               ).lower()
-#                        
-#    else:
-#        sub= (((subFullNm[0]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:5]).lower()
-    
-#    csv_d=grassConf.get('data', 'csv_data')
-#    subCSV=r'%s/bsnCounties.csv' % (csv_d)
-#    subRdr=csv.reader(open(subCSV,'rb'))
-#    hdrRw=subRdr.next()
-#    subCntyDict={}
-#    for subRw in subRdr:
-#        sub=(subRw[1]).lower()
-#        cnty=(subRw[3]).lower()
-#        if sub in subCntyDict:
-#            subCntyDict[sub]='%s,%s' % (subCntyDict[sub],cnty)
-#        else:
-#            subCntyDict[sub]=cnty
-#    
-#    pp('----NO SET-------')
-#    pp(subCntyDict)
-#    cntyStr=subCntyDict['upperneuse']
-#    cntyList=cntyStr.split(',')
-#    for cnty in cntyList:
-#        pp(cnty)
-#    pp(len(cntyList))
-#    pp(subCntyDict['upperneuse'])  
-
-#    pp('----YES SET-------')
-#    subSet=Set(subList)
-#    cntySet=Set(cntyList)
-#    subCntyDict={}
-#    for subCnty in allSubCntyList:
-#        sub=(subCnty.split('_'))[0]
-#        cnty=(subCnty.split('_'))[1]
-#        if sub in subCntyDict:
-#            subCntyDict[sub]='%s,%s' % (subCntyDict[sub],cnty)
-#        else:
-#            subCntyDict[sub]=cnty
-#
-#    pp(subCntyDict)
-#    cntyStr=subCntyDict['upperneuse']
-#    cntyList=cntyStr.split(',')
-#    for cnty in cntyList:
-#        pp(cnty)
-#    pp(len(cntyList))
-#    pp(subCntyDict['upperneuse'])  
-    
-    
-#    subRstList=grassGisApp.grassCurMapsetRastList
-#    pp(subRstList)
-#      
-#    bsnRastList=grassGisApp.grassMapsetRastList
-#    for bsnR in bsnSet:
-#        if bsnR in bsnRastList:
-#            pp(bsnR)
-#        else:
-#            pStr='%s NOT IN MAPSET' % (bsnR)
-#            pp(pStr)
-        
-##        caps=re.search('[A-Z]*',bsn)
-#        caps=re.findall('[A-Z]',bsn)
-#        numCaps=len(caps)
-#        pp(caps)
-#        pp(numCaps)
-##        for cap in caps:
-##            
-#        if len(caps) > 2:
-#            sub= ('%s%s%s' % ((caps[0])[:1], \
-#                           ((caps[1]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:2], \
-#                           ((caps[2]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:2]) \
-#               ).lower()
-#        elif len(caps) > 1:
-#            sub= ('%s%s' % ((caps[0])[:1], \
-#                         ((caps[1]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:3]) \
-#               ).lower()
-#                        
-#        else:
-#            sub= (((caps[0]).replace('a','').replace('e','').replace('i','').replace('o','').replace('u',''))[:5]).lower()
-#        
-#        pp(sub)
-#    for root,dirs,files in os.walk(inDir):
-#        for rst in dirs:
-##            if rst.startswith('lu'):
-#            pp(rst)
-#            gRast.importRast(inDir, rst)
-                
-    
-#    nc80Hill='nc80_hill'
-#    extRast='ctb'
-#    pp(nc80Hill)
-#    pp(grass.read_command('g.proj','w'))
-    
-#    gRast.importRast(inDir, nc80Hill)
-#    gRast.linkRast(inDir, extRast)
-#    rList=grassGisApp.grassRastList
-#    pp(rList)
-    
-#    testR='upperneuse.basin10@tmorriss'
-#    pp(testR)
-    
-#    gDisp=grassGisApp.gDisplay()
-#    gDisp.outPNG(testR,r'C:/MyDocs')
-#    gRast=grassGisApp.gRaster()
-#    v_uns=gRast.convRtoV(testR)
-
-    
-    
-#    grassGisApp.createMapset('subs')   
     pp(grassGisApp.getMapsets)
-#    grass.run_command('g.gisenv',set="GISDBASE=C:\\MyDocs\\projects\\GISDBASE")
-#    grass.run_command('g.gisenv',set="LOCATION_NAME=nc_res")
-#    grass.run_command('g.gisenv',set="MAPSET=tmorriss")
-##    GISDBASE: C:\MyDocs\projects\GISDBASE
-##    LOCATION_NAME: nc_res
-##    MAPSET: tmorriss
-##    GRASS_GUI: wxpython
-#    loc=grass.read_command('g.gisenv',get='LOCATION_NAME')
-#    locPath=grass.read_command('g.gisenv',get='LOCATION')
-#    pp(loc)
-#    pp(locPath)
-#    pp(grass.read_command('g.gisenv'))
-#    pp(os.environ["GISRC"])
-#    pp()
+    curMpset=grassGisApp.getCurMapset()
+    pp(curMpset)
+    allRast=grassGisApp.grassRastList
+    permMpRast=grassGisApp.grassPermRastList
+    curMpRast=grassGisApp.grassCurMapsetRastList
+#    pp(curMpRast)
+#    pp(permMpRast)
+#    pp(allRast)
+    allV=grassGisApp.grassVectList
+    permVectL=grassGisApp.grassPermVectList
+    curMpVectList=grassGisApp.grassCurMapsetVectList
+    pp(allV)
+    pp(permVectL)
+    pp(curMpVectList)
+
+#    pp('CURRENT : %s' % (curMpset))
+#    pp(curMpRast)
+###    gRast.delMask
+##    pp('PERM')
+#    pp(permMpRast)
+#    for rst in curMpRast:
+#        if rst in permMpRast:
+##            pp('%s in MAPSETS: %s & PERMANENT : g.remove from %s' % (rst,curMpset,curMpset))
+#            grass.run_command('g.mremove','f',rast=rst)
+#            pp('%s removed from %s MAPSET' % (rst,curMpset))
+#        else:
+#            pp('%s only in in %s' % (rst,curMpset))
+
+#    
+    #clean
+    def cleanWshedVect():
+        for wshedV in curMpVectList:
+            if not wshedV.startswith('upperneuse'):
+                pp(wshedV)   
+                grass.run_command('g.mremove','f',vect=wshedV)
+    def cleanWshed():
+        for wshedR in curMpRast:
+            if wshedR.endswith('.cnty20'):
+                pp(wshedR)   
+                grass.run_command('g.mremove','f',rast=wshedR)
+    
+#    cleanWshedVect()
+#    cleanWshed()
+
+    #get some vect atts
+    vAttStr=grass.read_command('v.db.select','c',map='upperneuse_basin25',fs=',')
+    vAttL=vAttStr.split('\n')
+    pp(vAttL)
+    vReport=grass.read_command('v.report','r',map='upperneuse_basin25',option='area',units='mi')
+    pp(vReport)
+    vReportL=vReport.split('\n')
+    pp(vReportL)
+    pp(grass.read_command('v.info',map='upperneuse_basin25'))
+    vStats=grass.read_command('v.univar','g',map='upperneuse_basin25',col='area_sqmi',type='area')
+    vStatsL=vStats.split('\n')
+    pp(vStatsL)
+    vStatsDict={}
+    for stat in vStatsL:
+        kv=stat.split('=')
+        if len(kv) > 1:
+            vStatsDict[kv[0]]=kv[1]
+        
+    pp(vStatsDict)  
+    pp(vStatsDict['min'])  
     #-- App Code end --#
     debug(end_main)

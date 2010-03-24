@@ -34,26 +34,88 @@ class gRast():
         self.__rThin='r.thin'
         self.__rInArc='r.in.arc'
         self.__rInGDAL='r.in.gdal'
+        self.__rOutGDAL='r.out.gdal'
         self.__rExt='r.external'
         self.__rMask='r.mask'
-        
+        self.__rShade='r.shaded.relief'
+        self.__rColors='r.colors'
+        self.__rPatch='r.patch'
+
         #Class vals
         self.__mask='NA'
         #Class properties
         
     #Public Functions
+    def mosaicRasters(self,inRstList,outRstNm,overWrt=False):
+        '''Create a mosaic'd raster from the input raster list (r.patch)
+        INPUT: list (rasters to be mosaic'd)
+               string (output mosaic name)
+        '''
+        inRstStr=','.join(inRstList)
+        print inRstStr
+        grass.run_command(self.__rPatch,overwrite=overWrt,input=inRstStr,output=outRstNm)
+        
+        return outRstNm
+        
+    def outGTiff(self,inRast,outDir):
+        '''Output a geo-referenced TIFF of input raster via gdal
+        INPUT: rast
+        OUTPUT: geoTIFF
+        '''
+        outGTiff='%s/%s.tif' % (outDir,inRast)
+        outType='GTiff'
+        outOpt='TFW=YES'
+        self.__outGDAL(inRast,outGTiff, outType, outOpt)
+        
+    def __outGDAL(self,inRast,outNm,outType,outOpt=''):
+        '''Output a raster via gdal to input type
+        INPUT: rast
+                output name
+               output format (ex.GeoTIFF)
+               output option (create option name/value pair, ex. TFW=YES
+        OUTPUT: outNm
+        '''    
+        grass.run_command(self.__rOutGDAL,input=inRast,format=outType,output=outNm,createopt=outOpt)
+
+    def setElevColor(self,inRast):
+        '''Set the color scheme for the inRast for elevation
+        INPUT: rast'''
+        rastCol='elevation'
+        self.__setRastColors(inRast, rastCol)
+        
+    def __setRastColors(self,inRast,inCol):
+        '''Set the color scheme for the inRast
+        INPUT:  rast
+                color'''
+        grass.run_command(self.__rColors,map=inRast,color=inCol)
+        
+    def createRelief(self,inRast,overWrt=False):
+        '''Creates a shaded relief raster from input
+        INPUT: rast
+        OUTPUT: shaded rastNm'''
+        shdRast='%s.shade' % (inRast)
+        grass.run_command(self.__rShade,overwrite=overWrt,map=inRast,shadedmap=shdRast)
+        return shdRast
+    
+    def hasMask(self):
+        '''Returns if a raster mask has been created'''
+        maskSet=True
+        if self.__mask == 'NA':
+            maskSet=False
+        return maskSet
+    
     def setMask(self,inMask):
         '''
         Sets the processing mask for raster processing (r.mask)
         INPUT: map 
         '''
+        #first delete the mask
+        self.delMask()
         grass.run_command(self.__rMask,input=inMask)
         self.__mask=inMask
     def delMask(self):
         '''Deletes raster processing mask'''
-        if self.__mask != 'NA':
-            grass.run_command(self.__rMask,'r')
-            
+        grass.run_command(self.__rMask,'r')
         
     def linkRast(self,inDir,inRast):
         '''
@@ -109,7 +171,7 @@ class gRast():
         grass.run_command(self.__rToV,flag,input=convRast,output=outVect,feature=vType)
         
         return outVect
-#        r.to.vect -b in=$basin out="${catch}" feature=area
+
     def calcWatershed(self,inRast,inThresh,inDA,overwrt=False):
         '''
             Run r.watershed GRASS function.
@@ -123,15 +185,33 @@ class gRast():
         rStream='%s.strms%s' % (inRast,inDA)
         rAccum='%s.accum%s' % (inRast,inDA) 
         rThresh=inThresh
-
-        grass.run_command(self.__rWatershed, 'm',overwrite=overwrt, elev=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh, memory=1000)
-        
+        grass.run_command(self.__rWatershed,'m',overwrite=overwrt, elev=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh,memory=1000)
         wshedDict={}
         wshedDict['elev']=inRast
         wshedDict['drain']=rDrain
         wshedDict['basin']=rBasin
         wshedDict['stream']=rStream
         wshedDict['flAccum']=rAccum
+        wshedDict['thres']=rThresh
+        
+        return wshedDict
+    
+    def calcWShedBasin(self,inRast,inThresh,inDA,overwrt=False):
+        '''
+            Run r.watershed GRASS function.
+            INPUT: inRast (input raster of elevation)
+                   inThres (threshold value (#cells) for basin)
+                   inDA (drainage area based on inThres)
+            OUTPUT: wshedDict (dictionary of elev, basin, rasters and threshold value)
+        '''
+        rBasin='%s.basin%s' % (inRast,inDA)
+#        rStream='%s.strms%s' % (inRast,inDA)
+        rThresh=inThresh
+        grass.run_command(self.__rWatershed,'m',overwrite=overwrt, elev=inRast, basin=rBasin, thres=rThresh,memory=1000)
+        wshedDict={}
+        wshedDict['elev']=inRast
+        wshedDict['basin']=rBasin
+#        wshedDict['stream']=rStream
         wshedDict['thres']=rThresh
         
         return wshedDict

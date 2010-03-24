@@ -37,6 +37,8 @@ class gVect():
         #Class vals
         
         #Class properties
+        
+    #Public Functions
     def addDBCol(self,inVect,colNm,colTyp):
         '''
         Add db column to a vector (v.db.addcol)
@@ -60,6 +62,13 @@ class gVect():
         grass.run_command(self.__vToDb,map=inVect,option=valTyp,columns=colNm,units=valUnit)
         
     def vectSelect(self,inVect):
+        '''
+            Run v.db.select GRASS function.
+            INPUT: inVect (input vector)
+            OUTPUT: vector info
+        '''
+        return grass.read_command(self.__vSel,map=inVect,fs=',')
+    def getVectRegion(self,inVect):
         '''
             Run v.db.select GRASS function.
             INPUT: inVect (input vector)
