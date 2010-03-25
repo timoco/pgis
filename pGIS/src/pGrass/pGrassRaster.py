@@ -218,7 +218,7 @@ class gRast():
         rStream='%s.strms%s' % (outRastBase,inDA)
         rAccum='%s.accum%s' % (outRastBase,inDA) 
         rThresh=inThresh
-        grass.run_command(self.__rWatershed,'m',overwrite=overwrt,elevation=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh,memory=1000)
+        grass.run_command(self.__rWatershed,'m',overwrite=overwrt,elevation=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum,thres=rThresh,memory=1000)
         wshedDict={}
         wshedDict['elev']=inRast
         wshedDict['drain']=rDrain
