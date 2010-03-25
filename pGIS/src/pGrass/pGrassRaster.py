@@ -40,12 +40,27 @@ class gRast():
         self.__rShade='r.shaded.relief'
         self.__rColors='r.colors'
         self.__rPatch='r.patch'
+        self.__rStats='r.univar'
+        self.__rWhat='r.what'
 
         #Class vals
         self.__mask='NA'
         #Class properties
         
     #Public Functions
+    def queryRaster(self,inRast,inCoord):
+        '''Query raster by coordinate
+        INPUT: raster 
+               coordinate 
+        OUTPUT: queryVal
+        '''
+        cmdOut=(grass.read_command(self.__rWhat,input=inRast,east_north=inCoord)).rstrip('\n')
+        outValLi=cmdOut.split('|')
+        for val in outValLi:
+            if ((len(val)>0) and (not val in inCoord)):
+                outVal=val
+        return outVal
+        
     def mosaicRasters(self,inRstList,outRstNm,overWrt=False):
         '''Create a mosaic'd raster from the input raster list (r.patch)
         INPUT: list (rasters to be mosaic'd)
@@ -103,6 +118,9 @@ class gRast():
         if self.__mask == 'NA':
             maskSet=False
         return maskSet
+    def getMask(self):
+        '''Returns if a raster mask'''
+        return self.__mask
     
     def setMask(self,inMask):
         '''
@@ -151,7 +169,7 @@ class gRast():
         os.chdir(curDir)
         
     
-    def convRtoV(self,inRast,vType='area'):
+    def convRtoV(self,inRast,vType='area',overWrt=False):
         '''
         Convert raster to vector (r.to.vect)
         INPUT: raster
@@ -165,14 +183,25 @@ class gRast():
             convRast='%s_tov' % (inRast)
             flag='v'
             grass.run_command(self.__rThin,input=inRast,output=convRast)
-            
         #Vect names can not contain . -> convert to _
         outVect=inRast.replace('.','_')
-        grass.run_command(self.__rToV,flag,input=convRast,output=outVect,feature=vType)
+        grass.run_command(self.__rToV,flag,overwrite=overWrt,input=convRast,output=outVect,feature=vType)
         
         return outVect
-
-    def calcWatershed(self,inRast,inThresh,inDA,overwrt=False):
+    
+    def fillLake(self,inRast,inWaterLvl,inCoord,overWrt=False):
+        '''
+            Creates a raster lake representing lake depth (r.lake).
+            INPUT: inRast (input raster of elevation)
+                   inWaterLvl (float for water level -> depth of lake)
+                   inCoord (X,Y coordinate to serve as seed point)
+            OUTPUT: outLake (raster of lake)
+        '''
+        outLake='%s.lake' % (inRast)
+        grass.run_command(self.__rLake,overwrite=overWrt,dem=inRast,wl=inWaterLvl,xy=inCoord,lake=outLake)
+        return outLake
+    
+    def calcWatershed(self,inRast,inThresh,inDA,subId='',overwrt=False):
         '''
             Run r.watershed GRASS function.
             INPUT: inRast (input raster of elevation)
@@ -180,12 +209,16 @@ class gRast():
                    inDA (drainage area based on inThres)
             OUTPUT: wshedDict (dictionary of elev, drain, basin, stream, flow accumulation rasters and threshold value)
         '''
-        rDrain='%s.drain%s' % (inRast,inDA) 
-        rBasin='%s.basin%s' % (inRast,inDA)
-        rStream='%s.strms%s' % (inRast,inDA)
-        rAccum='%s.accum%s' % (inRast,inDA) 
+        outRastBase=inRast
+        if len(subId)>0:
+            outRastBase=inRast.replace('cnty20',subId)
+            
+        rDrain='%s.drain%s' % (outRastBase,inDA) 
+        rBasin='%s.basin%s' % (outRastBase,inDA)
+        rStream='%s.strms%s' % (outRastBase,inDA)
+        rAccum='%s.accum%s' % (outRastBase,inDA) 
         rThresh=inThresh
-        grass.run_command(self.__rWatershed,'m',overwrite=overwrt, elev=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh,memory=1000)
+        grass.run_command(self.__rWatershed,'m',overwrite=overwrt,elevation=inRast, drain=rDrain, basin=rBasin, stream=rStream, accumulation=rAccum, thres=rThresh,memory=1000)
         wshedDict={}
         wshedDict['elev']=inRast
         wshedDict['drain']=rDrain
@@ -245,6 +278,21 @@ class gRast():
         rawRes=grass.read_command(self.__rInfo,flags='s',map=inRast)
         res=((rawRes.split('='))[2]).rstrip('\n')
         return res
+    
+    def rastStats(self,inRast):
+        '''
+        Return the univar statistics of #,# missing, # null, min, max, & range of raster
+        INPUT: raster
+        OUTPUT: dictionary (stats)
+        '''
+        rStats=grass.read_command(self.__rStats,'g',map=inRast)
+        rStatsL=rStats.split('\n')
+        rStatsDict={}
+        for stat in rStatsL:
+            kv=stat.split('=')
+            if len(kv) > 1:
+                rStatsDict[kv[0]]=kv[1]
+        return rStatsDict
     
     def rasterReport(self,inRast):
         '''

@@ -32,13 +32,78 @@ class gVect():
         self.__vDbAddCol='v.db.addcol'
         self.__vToDb='v.to.db'
         self.__vSel='v.db.select'
-        
-        
+        self.__vStats='v.univar'
+        self.__vExtract='v.extract'
+        self.__vToR='v.to.rast'
+        self.__vSegment='v.segment'
+        self.__vLineToPts='v.to.points'
         #Class vals
         
         #Class properties
         
     #Public Functions
+    def lineToPts(self,inVect,inDist,overWrt=False):
+        '''
+        Create points along input line (v.to.points) 
+        INPUT: vector
+               float (distance between points)
+        OUTPUT: vector (points)
+        '''
+        outVPts='%s_pts' % (inVect)
+        grass.run_command(self.__vLineToPts,overwrite=overWrt,input=inVect,output=outVPts,type='point',dmax=inDist)
+        return outVPts
+    
+    def segmentLine(self,inVect,inFile,overWrt=False):
+        '''
+        Segment a line into points 
+        INPUT: vector
+               file (segmentation rules) 
+        OUTPUT: vector (out segmentation)
+        '''
+        outSegV='%s_seg' % (inVect)
+        grass.run_command(self.__vSegment,overwrite=overWrt,input=inVect,output=outSegV,file=inFile)
+        return outSegV
+    
+    def convVtoR(self,inVect,colNm,overWrt=False):
+        '''
+        Convert vector to raster (v.to.rast)
+        INPUT: vector
+               column name (used for raster value) 
+        OUTPUT: raster name
+        '''
+        #Raster naming convention is . thus replace _ with .
+        outRast=inVect.replace('_','.')
+        grass.run_command(self.__vToR,overwrite=overWrt,input=inVect,output=outRast,use='attr',column=colNm)
+        return outRast
+    
+    def vectExtractEach(self,inVect,inVectNum,overWrt=False):
+        '''
+        Extract and create new vector for each vector object (row/feature)
+        INPUT: vect
+               vect num (cat num for vector object)
+        OUTPUT: string (new vector name)
+        '''
+        outVect='%s_%d' % (inVect,inVectNum)
+        grass.run_command(self.__vExtract,overwrite=overWrt,input=inVect,output=outVect,list=inVectNum)
+        return outVect
+    
+    def vectStats(self,inVect,inCol='',inColTyp=''):
+        '''
+        Return the univar statistics of #,# missing, # null, min, max, & range of vector
+        INPUT: vect
+               column name
+               column type
+        OUTPUT: dictionary (stats)
+        '''
+        vStats=grass.read_command(self.__vStats,'g',map=inVect,col=inCol,type=inColTyp)
+        vStatsL=vStats.split('\n')
+        vStatsDict={}
+        for stat in vStatsL:
+            kv=stat.split('=')
+            if len(kv) > 1:
+                vStatsDict[kv[0]]=kv[1]
+        return vStatsDict
+    
     def addDBCol(self,inVect,colNm,colTyp):
         '''
         Add db column to a vector (v.db.addcol)
@@ -67,7 +132,7 @@ class gVect():
             INPUT: inVect (input vector)
             OUTPUT: vector info
         '''
-        return grass.read_command(self.__vSel,map=inVect,fs=',')
+        return grass.read_command(self.__vSel,'c',map=inVect,fs=',')
     def getVectRegion(self,inVect):
         '''
             Run v.db.select GRASS function.
