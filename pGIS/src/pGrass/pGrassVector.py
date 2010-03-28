@@ -112,8 +112,6 @@ class gVect():
                column type
         '''
         colStr='%s %s' % (colNm,colTyp)
-        pp(colStr)
-        pp(inVect)
         grass.run_command(self.__vDbAddCol,map=inVect,columns=colStr)
     
     def addDBVal(self,inVect,valTyp,colNm,valUnit):
@@ -125,6 +123,13 @@ class gVect():
                value unit (mi,k,a,h etc)
         '''
         grass.run_command(self.__vToDb,map=inVect,option=valTyp,columns=colNm,units=valUnit)
+    
+    def createDBTbl(self,inVect,valTyp):
+        '''
+        Load vector features to db  (v.to.db)
+        INPUT: vect
+        '''
+        grass.run_command(self.__vToDb,map=inVect,option=valTyp)
         
     def vectSelect(self,inVect):
         '''

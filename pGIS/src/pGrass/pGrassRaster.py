@@ -67,9 +67,7 @@ class gRast():
                string (output mosaic name)
         '''
         inRstStr=','.join(inRstList)
-        print inRstStr
         grass.run_command(self.__rPatch,overwrite=overWrt,input=inRstStr,output=outRstNm)
-        
         return outRstNm
         
     def outGTiff(self,inRast,outDir):
@@ -182,7 +180,7 @@ class gRast():
         if vType=='line':
             convRast='%s_tov' % (inRast)
             flag='v'
-            grass.run_command(self.__rThin,input=inRast,output=convRast)
+            grass.run_command(self.__rThin,overwrite=overWrt,input=inRast,output=convRast)
         #Vect names can not contain . -> convert to _
         outVect=inRast.replace('.','_')
         grass.run_command(self.__rToV,flag,overwrite=overWrt,input=convRast,output=outVect,feature=vType)
@@ -237,16 +235,30 @@ class gRast():
                    inDA (drainage area based on inThres)
             OUTPUT: wshedDict (dictionary of elev, basin, rasters and threshold value)
         '''
-        rBasin='%s.basin%s' % (inRast,inDA)
-#        rStream='%s.strms%s' % (inRast,inDA)
+        #get the resolution
+        rastRes=self.getRasterRes(inRast)
+        if rastRes=='20':
+            #set the name with the mask
+            rastMask=self.getMask()
+            suffix=(rastMask.split('.'))[2] # ex) upneuse.basin10.6 -> 6
+            rBasin='%s.basin%s.%s' % (inRast,inDA,suffix)
+            rStream='%s.strms%s.%s' % (inRast,inDA,suffix)
+            rDrain='%s.drain%s.%s' % (inRast,inDA,suffix)
+            rAccum='%s.flwaccum%s.%s' % (inRast,inDA,suffix)
+        else: 
+            rBasin='%s.basin%s' % (inRast,inDA)
+            rStream='%s.strms%s' % (inRast,inDA)
+            rDrain='%s.drain%s' % (inRast,inDA)
+            rAccum='%s.flwaccum%s' % (inRast,inDA)
         rThresh=inThresh
-        grass.run_command(self.__rWatershed,'m',overwrite=overwrt, elev=inRast, basin=rBasin, thres=rThresh,memory=1000)
+        grass.run_command(self.__rWatershed,'m',overwrite=overwrt, elev=inRast, basin=rBasin, drain=rDrain,accumulation=rAccum,stream=rStream, thres=rThresh,memory=1000)
         wshedDict={}
         wshedDict['elev']=inRast
         wshedDict['basin']=rBasin
-#        wshedDict['stream']=rStream
+        wshedDict['stream']=rStream
+        wshedDict['drain']=rDrain
+        wshedDict['flAccum']=rAccum
         wshedDict['thres']=rThresh
-        
         return wshedDict
     def createLake(self,inRast,inLvl,inX,inY):
         '''
