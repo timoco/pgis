@@ -67,6 +67,7 @@ class grassApp():
         self.__grassRaster=pGrassRaster.gRast
         self.__grassVector=pGrassVector.gVect
      
+    
     def renameDS(self,inDS,outNm,inDSTyp='rast'):
         '''rename a dataset'''
         oldNew='%s,%s' % (inDS,outNm)
@@ -139,7 +140,22 @@ class grassApp():
         dsStr=dsStr.rstrip('\n')
         dsList=dsStr.split(',')
         return dsList
-             
+
+
+    #Public Functions
+    def dsExists(self,inDS):
+        ''' check to see if a dataset exists in the grassDB
+        INPUT: dataset name (string)
+        OUTPUT: exists (boolean)'''
+        dsExists=False
+        isRast=grass.read_command(self.__gMList,type='rast',pattern=inDS)
+        isVect=grass.read_command(self.__gMList,type='vect',pattern=inDS)
+        if len(isRast)>0:
+            dsExists=True
+        if len(isVect)>0:
+            dsExists=True
+        return dsExists
+    
     #CLASS PROPERTIES
     @property
     def getMapsets(self): 
@@ -282,9 +298,9 @@ if __name__=='__main__':
     allRast=grassGisApp.grassRastList
     permMpRast=grassGisApp.grassPermRastList
     curMpRast=grassGisApp.grassCurMapsetRastList
-    pp(curMpRast)
-    pp(permMpRast)
-    pp(allRast)
+#    pp(curMpRast)
+#    pp(permMpRast)
+#    pp(allRast)
     allV=grassGisApp.grassVectList
     permVectL=grassGisApp.grassPermVectList
     curMpVectList=grassGisApp.grassCurMapsetVectList
@@ -294,67 +310,82 @@ if __name__=='__main__':
 #    pp('CURRENT : %s' % (curMpset))
 #    pp(curMpRast)
 #   
+    dsExist=grassGisApp.dsExists('upperneuse')
+    pp(dsExist)
+    retVal=grass.run_command('r.info',map='upperneuse')
+    pp(retVal)
+    retVal2=grass.run_command('r.info',map='upperneusexxaaaaaaaaa')
+    pp(retVal2)
+#    gRast.setMask('upns80')
+#    vol=gRast.calcVolume('upns80')
+#    pp('Volume = %s' % (vol))
+#    surfArea=gRast.calcSurfArea('upns80')
+#    pp('Surface Area = %s' % (surfArea))
+#    surfArVolRatio=float(surfArea)/float(vol)
+#    pp('Surface Area to Volume ratio = %f' % (surfArVolRatio))
+
+
 #    cpStr='upperneuse.cnty20,upnsC20' 
 #    grass.run_command('g.copy',rast=cpStr)
 
 #    sub80R='upns80'
 #    subCnty20R='upperneuse.cnty20'
-    sub80R='haw'
-    subCnty20R='haw.cnty20'
-# 
-    gRast.delMask()
-    pp(gRast.getMask())
-    gRast.setMask(sub80R)
-    grassGisApp.setRegion(sub80R, 'rast')
-    pp(grassGisApp.getRegion)
-    pp(gRast.getMask())
-#    sub80WShedDict=gRast.calcWShedBasin(sub80R, '43560', '10', True)
-    sub80WShedDict={}
-    sub80WShedDict['basin']='%s.basin10' % (sub80R)
-    sub80BsnR=sub80WShedDict['basin']
-#    bsnV=gRast.convRtoV(sub80BsnR,'area',True)
-    bsnV=sub80BsnR.replace('.','_')
-#    gVect.addDBCol(bsnV,'area_sqmi','DOUBLE PRECISION')
-#    gVect.addDBVal(bsnV,'area','area_sqmi','mi')
-    vReport=grass.read_command('v.report','r',map=bsnV,option='area',units='mi')
-    pp(vReport)
-    vReportL=vReport.split('\n')
-    pp(vReportL)
-    vStatsDict=gVect.vectStats(bsnV,'area_sqmi','area')
-    pp(vStatsDict)
-    pp(vStatsDict['n'])
-    numV=int(vStatsDict['n'])
-    pp(numV)
-    vAttStr=gVect.vectSelect(bsnV)
-    vAttL=vAttStr.split('\n')
-    pp(vAttL)
-    for vObj in vAttL:
-        if len(vObj)>0:
-            vCat=int(((vObj).split(','))[0])
-            vArea=round(float(((vObj).split(','))[3]))
-            if vArea in range(50,150):
-                if vCat == 1:
-                    pp(vCat)
-                    pp(vArea)
-                    bsnVObj=gVect.vectExtractEach(bsnV, vCat,True)
-                    pp(bsnVObj)
-                    #must set region before conversion
-                    grassGisApp.setRegion(subCnty20R,'rast')
-                    pp(grassGisApp.getRegion)
-                    pp(gRast.getMask())
-                    bsnRObj=gVect.convVtoR(bsnVObj, 'area_sqmi',True)
-                    pp(bsnRObj)
-                    #set the mask to rObj
-                    gRast.setMask(bsnRObj)
-                    pp(gRast.getMask())
-                    #run the watershed for the sub20 with mask
-                    sub20WShedDict=gRast.calcWatershed(subCnty20R, '696960', '10',str(vCat),True)
-                    pp(sub20WShedDict)
-                    #convert Streams to vect
-                    sub20Strms=gRast.convRtoV(sub20WShedDict['stream'],'line',True)
-                    pp(sub20Strms)
-    pp(grassGisApp.getRegion)
-    pp(gRast.getMask())
+#    sub80R='haw'
+#    subCnty20R='haw.cnty20'
+## 
+#    gRast.delMask()
+#    pp(gRast.getMask())
+#    gRast.setMask(sub80R)
+#    grassGisApp.setRegion(sub80R, 'rast')
+#    pp(grassGisApp.getRegion)
+#    pp(gRast.getMask())
+##    sub80WShedDict=gRast.calcWShedBasin(sub80R, '43560', '10', True)
+#    sub80WShedDict={}
+#    sub80WShedDict['basin']='%s.basin10' % (sub80R)
+#    sub80BsnR=sub80WShedDict['basin']
+##    bsnV=gRast.convRtoV(sub80BsnR,'area',True)
+#    bsnV=sub80BsnR.replace('.','_')
+##    gVect.addDBCol(bsnV,'area_sqmi','DOUBLE PRECISION')
+##    gVect.addDBVal(bsnV,'area','area_sqmi','mi')
+#    vReport=grass.read_command('v.report','r',map=bsnV,option='area',units='mi')
+#    pp(vReport)
+#    vReportL=vReport.split('\n')
+#    pp(vReportL)
+#    vStatsDict=gVect.vectStats(bsnV,'area_sqmi','area')
+#    pp(vStatsDict)
+#    pp(vStatsDict['n'])
+#    numV=int(vStatsDict['n'])
+#    pp(numV)
+#    vAttStr=gVect.vectSelect(bsnV)
+#    vAttL=vAttStr.split('\n')
+#    pp(vAttL)
+#    for vObj in vAttL:
+#        if len(vObj)>0:
+#            vCat=int(((vObj).split(','))[0])
+#            vArea=round(float(((vObj).split(','))[3]))
+#            if vArea in range(50,150):
+#                if vCat == 1:
+#                    pp(vCat)
+#                    pp(vArea)
+#                    bsnVObj=gVect.vectExtractEach(bsnV, vCat,True)
+#                    pp(bsnVObj)
+#                    #must set region before conversion
+#                    grassGisApp.setRegion(subCnty20R,'rast')
+#                    pp(grassGisApp.getRegion)
+#                    pp(gRast.getMask())
+#                    bsnRObj=gVect.convVtoR(bsnVObj, 'area_sqmi',True)
+#                    pp(bsnRObj)
+#                    #set the mask to rObj
+#                    gRast.setMask(bsnRObj)
+#                    pp(gRast.getMask())
+#                    #run the watershed for the sub20 with mask
+#                    sub20WShedDict=gRast.calcWatershed(subCnty20R, '696960', '10',str(vCat),True)
+#                    pp(sub20WShedDict)
+#                    #convert Streams to vect
+#                    sub20Strms=gRast.convRtoV(sub20WShedDict['stream'],'line',True)
+#                    pp(sub20Strms)
+#    pp(grassGisApp.getRegion)
+#    pp(gRast.getMask())
 #    pp('PERM')
 #    pp(permMpRast)
 #    for rst in curMpRast:

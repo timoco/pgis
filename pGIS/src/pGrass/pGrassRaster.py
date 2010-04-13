@@ -28,6 +28,8 @@ class gRast():
         #set the grass.raster (r.<name>) functions
         self.__rWatershed='r.watershed'
         self.__rLake='r.lake'
+        self.__rVol='r.volume'
+        self.__rSurfArea='r.surf.area'
         self.__rReport='r.report'
         self.__rInfo='r.info'
         self.__rToV='r.to.vect'
@@ -42,6 +44,7 @@ class gRast():
         self.__rPatch='r.patch'
         self.__rStats='r.univar'
         self.__rWhat='r.what'
+        self.__rRegion='r.region'
 
         #Class vals
         self.__mask='NA'
@@ -127,7 +130,7 @@ class gRast():
         '''
         #first delete the mask
         self.delMask()
-        grass.run_command(self.__rMask,input=inMask)
+        grass.run_command(self.__rMask,'o',input=inMask)
         self.__mask=inMask
     def delMask(self):
         '''Deletes raster processing mask'''
@@ -199,6 +202,21 @@ class gRast():
         grass.run_command(self.__rLake,overwrite=overWrt,dem=inRast,wl=inWaterLvl,xy=inCoord,lake=outLake)
         return outLake
     
+    def calcWatershedCatchments(self,inRast,inThresh):
+        '''
+            Run r.watershed GRASS function.
+            INPUT: inRast (input raster of elevation)
+                   inThres (threshold value (#cells) for basin)
+            OUTPUT: basinName (string)
+        '''
+        outBasinNm='%s_catchments' % inRast
+        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,basin=outBasinNm,thres=inThresh,memory=1000)
+        if retVal==0:
+            return outBasinNm
+        else:
+            return None
+        
+        
     def calcWatershed(self,inRast,inThresh,inDA,subId='',overwrt=False):
         '''
             Run r.watershed GRASS function.
@@ -280,7 +298,29 @@ class gRast():
         seedXY='%s,%s' % (inX,inY)
         grass.run_command(self.__rLake,dem=inRast,wl=inLvl,lake=outLake,xy=seedXY)
         return outLake
+    
+    def calcVolume(self,inRast):
+        '''
+        Run r.volume 
+        INPUT: inRast (raster)
+        OUTPUT: list (volume, centroid vector) 
+        '''
+        outCentroidV='%s_centrd' % (inRast.replace('.','_'))
+        rawVol=grass.read_command(self.__rVol,'f',overwrite=True,quiet=True,data=inRast,centroids=outCentroidV)
+        outVol=((rawVol[rawVol.rfind(':'):]).rstrip('\n\n')).lstrip(':')
+        return outVol
         
+    def calcSurfArea(self,inRast):
+        '''
+        Run r.surf.area 
+        INPUT: inRast (raster)
+        OUTPUT: surfArea 
+        '''
+        self.setRegion(inRast)
+        rawSurfArea=grass.read_command(self.__rSurfArea,quiet=True,input=inRast)
+        outSurfArea='%f' % (float(((rawSurfArea[rawSurfArea.rfind(':'):-7]).rstrip('\n\n')).lstrip(': ')))
+        return outSurfArea
+
     def getRasterRes(self,inRast):
         '''
         Run r.info with -s flag for raster resolution
@@ -314,6 +354,13 @@ class gRast():
         '''
         return grass.read_command(self.__rReport,flags='-q',map=inRast)
     
+    def setRegion(self,inRast):
+        '''
+            Run r.region
+            INPUT: inRast 
+        '''
+        grass.run_command(self.__rRegion,map=inRast)
+    
 # #####################################
 #       ------ Functions --------
 # #####################################
@@ -346,5 +393,10 @@ if __name__=='__main__':
        
        rast=gRast()
        pp(rast)
+       pp(grass.read_command('g.mlist',type='rast'))
+       retVal=grass.run_command('r.info',map='xxx')
+       pp(retVal)
+       retVal2=grass.run_command('r.info',map='upns80')
+       pp(retVal2)
        #-- App Code end --#
        debug(end_main)

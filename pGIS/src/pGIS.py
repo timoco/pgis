@@ -52,7 +52,10 @@ class gisApp():
         self.__rastDir='%s%s' % (self.__home,self.__appDataDict['rast_data'])
         self.__vectDir='%s%s' % (self.__home,self.__appDataDict['vect_data'])
         self.__csvDir='%s%s' % (self.__home,self.__appDataDict['csv_data'])
+        self.__tblDir='%s%s' % (self.__home,self.__appDataDict['tbl_data'])
+        self.__dataSrc=self.__appDataDict['data_src']
         self.__outDir='%s%s' % (self.__home,self.__appDataDict['out_dir'])
+        
         
         if self.__hasGrass:
             self.__grassApp=self.__createGrassApp()
@@ -120,6 +123,14 @@ class gisApp():
     def appCsvDir(self):
         '''return the pGIS implementation csv data dir'''
         return self.__csvDir
+    @property
+    def appTblDir(self):
+        '''return the pGIS implementation tbl data dir'''
+        return self.__tblDir
+    @property
+    def appDataSrc(self):
+        '''return the pGIS implementation data source'''
+        return self.__dataSrc
     @property
     def appOutDir(self):
         '''return the pGIS implementation output data dir'''
