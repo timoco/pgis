@@ -201,6 +201,7 @@ if __name__=='__main__':
     end_main="End main (%s)" % (__file__)
 
     debug(start_main)
+    pp("Change for SVN measures")
     #-- App Code start --#
     appID_ncres='ncres'
     appID_geomod='geomod'
