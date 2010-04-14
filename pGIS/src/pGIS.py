@@ -124,14 +124,6 @@ class gisApp():
         '''return the pGIS implementation csv data dir'''
         return self.__csvDir
     @property
-    def appTblDir(self):
-        '''return the pGIS implementation tbl data dir'''
-        return self.__tblDir
-    @property
-    def appDataSrc(self):
-        '''return the pGIS implementation data source'''
-        return self.__dataSrc
-    @property
     def appOutDir(self):
         '''return the pGIS implementation output data dir'''
         return self.__outDir
