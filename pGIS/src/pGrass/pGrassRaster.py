@@ -28,7 +28,8 @@ class gRast():
         #set the grass.raster (r.<name>) functions
         self.__rWatershed='r.watershed'
         self.__rLake='r.lake'
-        self.__rVol='r.volume'
+        self.__rWaterOutlet='r.water.outlet'
+        self.__rVolume='r.volume'
         self.__rSurfArea='r.surf.area'
         self.__rReport='r.report'
         self.__rInfo='r.info'
@@ -44,6 +45,7 @@ class gRast():
         self.__rPatch='r.patch'
         self.__rStats='r.univar'
         self.__rWhat='r.what'
+        self.__rNull='r.null'
         self.__rRegion='r.region'
 
         #Class vals
@@ -245,6 +247,19 @@ class gRast():
         
         return wshedDict
     
+    def calcWaterOutlet(self,inDrain,inCoordX,inCoordY,outBasinNm):
+        '''
+            Run r.water.outlet GRASS function.
+            INPUT: inDrain (input raster of drainage from r.watershed)
+                   inCoordX (easting coordinate for outlet point)
+                   inCoordY (northing coordinate for outlet point)
+                   outBasinNm (name for output basin)
+            OUTPUT: raster (out of basin from outlet)
+        '''
+        grass.run_command(self.__rWaterOutlet,drainage=inDrain,easting=inCoordX,northing=inCoordY,basin=outBasinNm)
+        #r.water.outlet --overwrite drainage="$catch_drain" easting="$damX" northing="$damY" basin="$damBasin"
+        return outBasinNm 
+
     def calcWShedBasin(self,inRast,inThresh,inDA,overwrt=False):
         '''
             Run r.watershed GRASS function.
@@ -306,7 +321,7 @@ class gRast():
         OUTPUT: list (volume, centroid vector) 
         '''
         outCentroidV='%s_centrd' % (inRast.replace('.','_'))
-        rawVol=grass.read_command(self.__rVol,'f',overwrite=True,quiet=True,data=inRast,centroids=outCentroidV)
+        rawVol=grass.read_command(self.__rVolume,'f',overwrite=True,quiet=True,data=inRast,centroids=outCentroidV)
         outVol=((rawVol[rawVol.rfind(':'):]).rstrip('\n\n')).lstrip(':')
         return outVol
         
@@ -393,10 +408,5 @@ if __name__=='__main__':
        
        rast=gRast()
        pp(rast)
-       pp(grass.read_command('g.mlist',type='rast'))
-       retVal=grass.run_command('r.info',map='xxx')
-       pp(retVal)
-       retVal2=grass.run_command('r.info',map='upns80')
-       pp(retVal2)
        #-- App Code end --#
        debug(end_main)
