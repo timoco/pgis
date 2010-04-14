@@ -53,6 +53,11 @@ class gRast():
         #Class properties
         
     #Public Functions
+    def nullToZero(self,inRast):
+        '''Reclass NULL to Zero for Raster
+        INPUT: inRast'''
+        grass.run_command(self.__rNull,map=inRast,setnull=0)
+        
     def queryRaster(self,inRast,inCoord):
         '''Query raster by coordinate
         INPUT: raster 
@@ -70,11 +75,15 @@ class gRast():
         '''Create a mosaic'd raster from the input raster list (r.patch)
         INPUT: list (rasters to be mosaic'd)
                string (output mosaic name)
+        OUTPUT: string (output mosaic name)
         '''
         inRstStr=','.join(inRstList)
-        grass.run_command(self.__rPatch,overwrite=overWrt,input=inRstStr,output=outRstNm)
-        return outRstNm
-        
+        retVal=grass.run_command(self.__rPatch,overwrite=overWrt,input=inRstStr,output=outRstNm)
+        if retVal==0:
+            return outRstNm
+        else:
+            return None
+            
     def outGTiff(self,inRast,outDir):
         '''Output a geo-referenced TIFF of input raster via gdal
         INPUT: rast
@@ -188,9 +197,12 @@ class gRast():
             grass.run_command(self.__rThin,overwrite=overWrt,input=inRast,output=convRast)
         #Vect names can not contain . -> convert to _
         outVect=inRast.replace('.','_')
-        grass.run_command(self.__rToV,flag,overwrite=overWrt,input=convRast,output=outVect,feature=vType)
-        
-        return outVect
+        retVal=grass.run_command(self.__rToV,flag,overwrite=overWrt,input=convRast,output=outVect,feature=vType)
+        if retVal==0:
+            return outVect
+        else:
+            return None
+
     
     def fillLake(self,inRast,inWaterLvl,inCoord,overWrt=False):
         '''
@@ -211,13 +223,12 @@ class gRast():
                    inThres (threshold value (#cells) for basin)
             OUTPUT: basinName (string)
         '''
-        outBasinNm='%s_catchments' % inRast
+        outBasinNm='%s.catchments' % inRast
         retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,basin=outBasinNm,thres=inThresh,memory=1000)
         if retVal==0:
             return outBasinNm
         else:
-            return None
-        
+            return None        
         
     def calcWatershed(self,inRast,inThresh,inDA,subId='',overwrt=False):
         '''

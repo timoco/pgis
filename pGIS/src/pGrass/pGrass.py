@@ -268,7 +268,7 @@ if __name__=='__main__':
     
     from ConfigParser import ConfigParser as configParser
     grassConf=configParser()
-    grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\ncres_app\src\app.ini')
+    grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\ncReservoir\src\app.ini')
     grassSect=grassConf.items('pGRASS')
     grassGisApp=grassApp(grassSect)
     grassEnvVars=grassGisApp.grassEnv
@@ -306,16 +306,17 @@ if __name__=='__main__':
     curMpVectList=grassGisApp.grassCurMapsetVectList
 #    pp(allV)
 #    pp(permVectL)
-#    pp(curMpVectList)
+    pp(curMpVectList)
+    gVect.addDBCol('upperneuse_catchments', 'test', 'double precision')
 #    pp('CURRENT : %s' % (curMpset))
 #    pp(curMpRast)
 #   
-    dsExist=grassGisApp.dsExists('upperneuse')
-    pp(dsExist)
-    retVal=grass.run_command('r.info',map='upperneuse')
-    pp(retVal)
-    retVal2=grass.run_command('r.info',map='upperneusexxaaaaaaaaa')
-    pp(retVal2)
+#    dsExist=grassGisApp.dsExists('upperneuse')
+#    pp(dsExist)
+#    retVal=grass.run_command('r.info',map='upperneuse')
+#    pp(retVal)
+#    retVal2=grass.run_command('r.info',map='upperneusexxaaaaaaaaa')
+#    pp(retVal2)
 #    gRast.setMask('upns80')
 #    vol=gRast.calcVolume('upns80')
 #    pp('Volume = %s' % (vol))

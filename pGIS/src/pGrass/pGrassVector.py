@@ -30,6 +30,7 @@ class gVect():
         self.__vInfo='v.info'
         self.__vReport='v.report'
         self.__vDbAddCol='v.db.addcol'
+        self.__vDbDropol='v.db.dropcol'
         self.__vToDb='v.to.db'
         self.__vSel='v.db.select'
         self.__vStats='v.univar'
@@ -103,6 +104,14 @@ class gVect():
             if len(kv) > 1:
                 vStatsDict[kv[0]]=kv[1]
         return vStatsDict
+    
+    def dropDBCol(self,inVect,colNm):
+        '''
+        Drops a db column to a vector (v.db.dropcol)
+        INPUT: vect
+               column name
+        '''
+        grass.run_command(self.__vDbDropol,map=inVect,column=colNm)
     
     def addDBCol(self,inVect,colNm,colTyp):
         '''

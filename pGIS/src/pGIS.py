@@ -62,7 +62,7 @@ class gisApp():
         if self.__hasArc:
             self.__arcApp=self.__createArcApp()
         if self.__hasEmail:
-            self.__createEmailApp()
+            self.emailApp=self.__createEmailApp()
             
     #Private functions
     def __createAppData(self):
@@ -93,11 +93,13 @@ class gisApp():
     
     def __createEmailApp(self):
         '''initialize email for pGIS'''
-        emailApp=self.__appConfObj.items('EMAIL')
-        self.__emailServer=self.__appConfObj.get('EMAIL','server')
-        self.__emailPort=self.__appConfObj.get('EMAIL','port')
-        self.__emailTo=self.__appConfObj.get('EMAIL','addr_to')
-        self.__emailFrom=self.__appConfObj.get('EMAIL','addr_from')
+#        emailApp=self.__appConfObj.items('EMAIL')
+        emailApp={}
+        emailApp['server']=self.__appConfObj.get('EMAIL', 'server')
+        emailApp['port']=self.__appConfObj.get('EMAIL', 'port')
+        emailApp['addr_to']=self.__appConfObj.get('EMAIL', 'addr_to')
+        emailApp['addr_from']=self.__appConfObj.get('EMAIL', 'addr_from')
+        return emailApp
      
     @property
     def appProjRoot(self):
@@ -123,6 +125,14 @@ class gisApp():
     def appCsvDir(self):
         '''return the pGIS implementation csv data dir'''
         return self.__csvDir
+    @property
+    def appTblDir(self):
+        '''return the pGIS implementation tbl data dir'''
+        return self.__tblDir
+    @property
+    def appDataSrc(self):
+        '''return the pGIS implementation data source'''
+        return self.__dataSrc
     @property
     def appOutDir(self):
         '''return the pGIS implementation output data dir'''
@@ -201,16 +211,16 @@ if __name__=='__main__':
     end_main="End main (%s)" % (__file__)
 
     debug(start_main)
-    pp("Change for SVN measures")
     #-- App Code start --#
     appID_ncres='ncres'
     appID_geomod='geomod'
-    appID='pgis_test'
+    appID='ncres'
     app=gisApp(appID)
     pp(app.appAppRoot)
     pp(app.appOutDir)
-    arc=app.arcApp
-    gp=arc.getGP
+    pp(app.emailApp)
+#    arc=app.arcApp
+#    gp=arc.getGP
     
 #    grass=app.grassApp
 #    arc=app.arcApp
