@@ -38,11 +38,27 @@ class gVect():
         self.__vToR='v.to.rast'
         self.__vSegment='v.segment'
         self.__vLineToPts='v.to.points'
+        self.__vEdit='v.edit'
+        self.__vCat='v.category'
         #Class vals
         
         #Class properties
         
     #Public Functions
+    def getVectCat(self,inVect):
+        '''return the vector category data
+        INPUT: inVect (vector)
+        OUTPUT: catList'''
+        catList=grass.read_command(self.__vCat,'g',input=inVect,option='print')
+        catList=catList.split('\n')
+        return catList
+    
+    def delVectWhere(self,inVect,inWhere):
+        '''Deletes vect objects matching where clause
+        INPUT: inVect (vector)
+                inWhere (where clause)'''
+        grass.run_command(self.__vEdit,map=inVect,tool='delete',where=inWhere)
+        
     def lineToPts(self,inVect,inDist,overWrt=False):
         '''
         Create points along input line (v.to.points) 
@@ -75,18 +91,38 @@ class gVect():
         #Raster naming convention is . thus replace _ with .
         outRast=inVect.replace('_','.')
         grass.run_command(self.__vToR,overwrite=overWrt,input=inVect,output=outRast,use='attr',column=colNm)
-        return outRast
-    
-    def vectExtractEach(self,inVect,inVectNum,overWrt=False):
+        if retVal==0:
+            return outRast
+        else:
+            return None
+    def getLineLength(self,inLineVect,unitTyp='f'):
+        '''Return the length of a line vector
+        INPUT: inLineVect
+               unitTyp (optional default=f -feet)
+        OUTPUT: length'''
+        flags='pc'
+#        lenRetVal=grass.read_command(self.__vToDb,quiet=True,flags,map=inLineVect,option='length',units=unitTyp)
+        lenRetVal=grass.read_command(self.__vToDb,flags,map=inLineVect,option='length',units=unitTyp)
+        lineLength=(lenRetVal.split(':'))[1]
+        
+        return lineLength
+        
+        
+    def vectExtractEach(self,inVect,inSubNm,inVectNum,overWrt=False):
         '''
         Extract and create new vector for each vector object (row/feature)
-        INPUT: vect
+        INPUT: vect (subBasin catchments)
+               inSub (subBasin name)
                vect num (cat num for vector object)
         OUTPUT: string (new vector name)
         '''
-        outVect='%s_%d' % (inVect,inVectNum)
-        grass.run_command(self.__vExtract,overwrite=overWrt,input=inVect,output=outVect,list=inVectNum)
-        return outVect
+        outVect='%s_catch%s' % (inSubNm,inVectNum)
+        retVal=grass.run_command(self.__vExtract,overwrite=overWrt,input=inVect,output=outVect,list=inVectNum)
+        if retVal==0:
+            return outVect
+        else:
+            return None
+
     
     def vectStats(self,inVect,inCol='',inColTyp=''):
         '''
@@ -147,6 +183,16 @@ class gVect():
             OUTPUT: vector info
         '''
         return grass.read_command(self.__vSel,'c',map=inVect,fs=',')
+    
+    def getVectCatWhere(self,inVect,inWhere):
+        '''
+            Run v.db.select GRASS function.
+            INPUT: inVect (input vector)
+                   inWhere
+            OUTPUT: catList
+        '''
+        return grass.read_command(self.__vSel,'c',map=inVect,fs=',',columns='cat',where=inWhere)
+    
     def getVectRegion(self,inVect):
         '''
             Run v.db.select GRASS function.
@@ -197,7 +243,7 @@ if __name__=='__main__':
        from ConfigParser import ConfigParser as configParser
        
        grassConf=configParser()
-       grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\ncres_app\src\app.ini')
+       grassConf.read(r'/Users/TPM/MyDocs/dev/eclipse/workspace/ncResEngine/ncReservoir/src/app.ini')  
        grassSect=grassConf.items('pGRASS')
        
        vect=gVect()

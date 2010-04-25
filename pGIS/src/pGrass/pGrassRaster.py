@@ -192,9 +192,7 @@ class gRast():
         convRast=inRast
         flag='s'
         if vType=='line':
-            convRast='%s_tov' % (inRast)
-            flag='v'
-            grass.run_command(self.__rThin,overwrite=overWrt,input=inRast,output=convRast)
+            grass.run_command(self.__rThin,overwrite=True,input=inRast,output='strm.thin')
         #Vect names can not contain . -> convert to _
         outVect=inRast.replace('.','_')
         retVal=grass.run_command(self.__rToV,flag,overwrite=overWrt,input=convRast,output=outVect,feature=vType)
@@ -224,9 +222,25 @@ class gRast():
             OUTPUT: basinName (string)
         '''
         outBasinNm='%s.catchments' % inRast
-        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,basin=outBasinNm,thres=inThresh,memory=1000)
+        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,basin=outBasinNm,thres=inThresh,memory=1200)
         if retVal==0:
             return outBasinNm
+        else:
+            return None 
+    def calcWatershedDrainStream(self,inRast,inDrainNm,inStreamNm,inThresh,inMem):
+        '''
+            Run r.watershed GRASS function.
+            INPUT: inRast (input raster of elevation)
+                   inThres (threshold value (#cells) for basin)
+            OUTPUT: hydroDict (dict of drain & stream rasters)
+        '''
+        hydroDict={}
+        hydroDict['drain']=inDrainNm
+        hydroDict['stream']=inStreamNm
+        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,drain=inDrainNm,stream=inStreaNm,threshold=inThresh,memory=inMem)
+#        r.watershed -m elev=$sub20 stream=$sub20catch_streamRast drain=$sub20catch_drain threshold=$threshold20 memory=$wshedMem 
+        if retVal==0:
+            return hydroDict
         else:
             return None        
         
