@@ -40,11 +40,27 @@ class gVect():
         self.__vLineToPts='v.to.points'
         self.__vEdit='v.edit'
         self.__vCat='v.category'
+        self.__vLinkExtern='v.external'
         #Class vals
         
         #Class properties
         
     #Public Functions
+    def linkExternalShp(self,inShpDir,inShpNm):
+        '''Link the GRASS DB to an external shapefile dir
+        INPUT: inShpDir (external dir)
+               inShpNm (external shp name)
+        OUTPUT: shpNm (name in GRASS DB)'''
+        outShpNm=inShpNm.replace('.shp','_shp')
+        inShpNm=inShpNm[:-4]
+        retVal=grass.run_command(self.__vLinkExtern,dsn=inShpDir,layer=inShpNm,output=outShpNm)
+
+        if retVal==0:
+            return outShpNm
+        else:
+            return None
+        
+        
     def getVectCat(self,inVect):
         '''return the vector category data
         INPUT: inVect (vector)
@@ -192,6 +208,22 @@ class gVect():
             OUTPUT: catList
         '''
         return grass.read_command(self.__vSel,'c',map=inVect,fs=',',columns='cat',where=inWhere)
+    
+    def getVectCat(self,inVect):
+        '''Run v.db.select GRASS function.
+            INPUT: inVect (input vector)
+            OUTPUT: catList'''
+        vectCatListRet=grass.read_command(self.__vSel,'c',map=inVect,fs=',',columns='cat')
+        vectCatListRaw=vectCatListRet.split('\n')
+        vectCatList=[]
+        for cat in vectCatListRaw:
+            if cat=='\n':
+                pass
+            else:
+                vectCatList.append(cat)
+                
+        return vectCatList
+    
     
     def getVectRegion(self,inVect):
         '''
