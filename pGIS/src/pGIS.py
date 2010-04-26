@@ -51,6 +51,7 @@ class gisApp():
         self.__gisDir='%s%s' % (self.__home,self.__appDataDict['gis_data'])
         self.__rastDir='%s%s' % (self.__home,self.__appDataDict['rast_data'])
         self.__vectDir='%s%s' % (self.__home,self.__appDataDict['vect_data'])
+        self.__zonalDir='%s%s' % (self.__home,self.__appDataDict['zonal_data'])
         self.__csvDir='%s%s' % (self.__home,self.__appDataDict['csv_data'])
         self.__tblDir='%s%s' % (self.__home,self.__appDataDict['tbl_data'])
         self.__dataSrc=self.__appDataDict['data_src']
@@ -121,6 +122,10 @@ class gisApp():
     def appVectDir(self):
         '''return the pGIS implementation vector data dir'''
         return self.__vectDir
+    @property
+    def appZonalDir(self):
+        '''return the pGIS implementation vector zonal data dir'''
+        return self.__zonalDir
     @property
     def appCsvDir(self):
         '''return the pGIS implementation csv data dir'''
@@ -218,6 +223,8 @@ if __name__=='__main__':
     app=gisApp(appID)
     pp(app.appAppRoot)
     pp(app.appOutDir)
+#    arc=app.arcApp
+#    gp=arc.getGP
     pp(app.emailApp)
 #    arc=app.arcApp
 #    gp=arc.getGP
