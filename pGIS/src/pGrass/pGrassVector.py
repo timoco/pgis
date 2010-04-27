@@ -61,13 +61,7 @@ class gVect():
             return None
         
         
-    def getVectCat(self,inVect):
-        '''return the vector category data
-        INPUT: inVect (vector)
-        OUTPUT: catList'''
-        catList=grass.read_command(self.__vCat,'g',input=inVect,option='print')
-        catList=catList.split('\n')
-        return catList
+    
     
     def delVectWhere(self,inVect,inWhere):
         '''Deletes vect objects matching where clause
@@ -106,7 +100,7 @@ class gVect():
         '''
         #Raster naming convention is . thus replace _ with .
         outRast=inVect.replace('_','.')
-        grass.run_command(self.__vToR,overwrite=overWrt,input=inVect,output=outRast,use='attr',column=colNm)
+        retVal=grass.run_command(self.__vToR,overwrite=overWrt,input=inVect,output=outRast,use='attr',column=colNm)
         if retVal==0:
             return outRast
         else:
@@ -208,7 +202,13 @@ class gVect():
             OUTPUT: catList
         '''
         return grass.read_command(self.__vSel,'c',map=inVect,fs=',',columns='cat',where=inWhere)
-    
+#    def getVectCat(self,inVect):
+#        '''return the vector category data
+#        INPUT: inVect (vector)
+#        OUTPUT: catList'''
+#        catList=grass.read_command(self.__vCat,'g',input=inVect,option='print')
+#        catList=catList.split('\n')
+#        return catList
     def getVectCat(self,inVect):
         '''Run v.db.select GRASS function.
             INPUT: inVect (input vector)
@@ -247,7 +247,27 @@ class gVect():
             INPUT: inVect (input vector)
             OUTPUT: vector report
         '''
-        return grass.read_command(self.__vReport,map=inVect,option=opt,units=unit)
+        return grass.read_command(self.__vReport,flags='r',map=inVect,option=opt,units=unit)
+    
+    def getVectCatAreaByThreshold(self,inVect,inThreshVal=5.0):
+        '''Get the area of each vector object in a vector dataset above a threshold value
+        INPUT: inVect (vector dataset)
+               inThreshVal (minimum area value/ default:5.0)
+        OUTPUT: vectCatAreaDict (dictionary of cat area key/value pair)'''
+        vectReportRaw=self.vectReport(inVect)
+        vectReportLi=vectReportRaw.split('\n')
+        vectCatAreaDict={}
+        for vect in vectReportLi:
+            if len(vect)>1:
+                area=(vect.split('|'))[3]
+                if not area=='area':
+                    cat=(vect.split('|'))[0]
+                    area_flt=float(area)
+                    if area_flt > inThreshVal:
+                        vectCatAreaDict[cat]=area_flt
+                        
+        return vectCatAreaDict
+        
 # #####################################
 #       ------ Functions --------
 # #####################################
@@ -275,10 +295,14 @@ if __name__=='__main__':
        from ConfigParser import ConfigParser as configParser
        
        grassConf=configParser()
-       grassConf.read(r'/Users/TPM/MyDocs/dev/eclipse/workspace/ncResEngine/ncReservoir/src/app.ini')  
+       grassConf.read(r'C:\MyDocs\projects\eclipse_wkspc\ncReservoir\src\app.ini')  
        grassSect=grassConf.items('pGRASS')
+    
+       appVect=gVect()
+       vectDS='haw_basin10'
+       subCatAreaDict=appVect.getVectCatAreaByThreshold(vectDS)
+       pp(subCatAreaDict)
+       pp(len(subCatAreaDict))
        
-       vect=gVect()
-       pp(vect) 
        #-- App Code end --#
        debug(end_main)
