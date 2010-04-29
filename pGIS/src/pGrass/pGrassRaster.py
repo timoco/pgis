@@ -38,6 +38,7 @@ class gRast():
         self.__rInArc='r.in.arc'
         self.__rInGDAL='r.in.gdal'
         self.__rOutGDAL='r.out.gdal'
+        self.__rOutArc='r.out.arc'
         self.__rExt='r.external'
         self.__rMask='r.mask'
         self.__rShade='r.shaded.relief'
@@ -47,12 +48,22 @@ class gRast():
         self.__rWhat='r.what'
         self.__rNull='r.null'
         self.__rRegion='r.region'
-
+        self.__gCopy='g.copy'   
+        self.__rResample='r.resample'    
         #Class vals
         self.__mask='NA'
         #Class properties
         
     #Public Functions
+    def copyRaster(self,inRastNm,outRastNm):
+        '''Copies a raster object'''
+        cmdStr='%s,%s' % (inRastNm,outRastNm)
+        retVal=grass.run_command(self.__gCopy,rast=cmdStr)
+        if retVal==0:
+            return outRastNm
+        else:
+            return None
+    
     def nullToZero(self,inRast):
         '''Reclass NULL to Zero for Raster
         INPUT: inRast'''
@@ -83,7 +94,17 @@ class gRast():
             return outRstNm
         else:
             return None
-            
+    def clipRasterByRegion(self,inRast,outRast):
+        '''Performs a 'clip' of the input raster based on the current region
+        INPUT: inRast
+               outRast
+        OUTPUT: outRastNm'''
+        retVal=grass.run_command(self.__rResample,input=inRast,output=outRast)
+        if retVal==0:
+            return outRast
+        else:
+            return None
+                
     def outGTiff(self,inRast,outDir):
         '''Output a geo-referenced TIFF of input raster via gdal
         INPUT: rast
@@ -93,6 +114,18 @@ class gRast():
         outType='GTiff'
         outOpt='TFW=YES'
         self.__outGDAL(inRast,outGTiff, outType, outOpt)
+        
+    def outArcGrid(self,inRast,arcGrdNm,outDir):
+        '''Exports raster to Arc GRID format
+        INPUT: inRast
+        OUTPUT: arcGridNm'''
+        outArcGrid=r'%s/%s' % (outDir,arcGrdNm)
+        retVal=grass.run_command(self.__rOutArc,input=inRast,output=outArcGrid)
+        if retVal==0:
+            return arcGrdNm
+        else:
+            return None
+        
         
     def __outGDAL(self,inRast,outNm,outType,outOpt=''):
         '''Output a raster via gdal to input type
@@ -237,7 +270,7 @@ class gRast():
         hydroDict={}
         hydroDict['drain']=inDrainNm
         hydroDict['stream']=inStreamNm
-        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,drain=inDrainNm,stream=inStreaNm,threshold=inThresh,memory=inMem)
+        retVal=grass.run_command(self.__rWatershed,'m',elevation=inRast,drain=inDrainNm,stream=inStreamNm,threshold=inThresh,memory=inMem)
 #        r.watershed -m elev=$sub20 stream=$sub20catch_streamRast drain=$sub20catch_drain threshold=$threshold20 memory=$wshedMem 
         if retVal==0:
             return hydroDict

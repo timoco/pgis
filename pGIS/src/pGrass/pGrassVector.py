@@ -80,18 +80,21 @@ class gVect():
         grass.run_command(self.__vLineToPts,overwrite=overWrt,input=inVect,output=outVPts,type='point',dmax=inDist)
         return outVPts
     
-    def segmentLine(self,inVect,inFile,overWrt=False):
+    def segmentLine(self,inVect,inFile,outSuffix='seg'):
         '''
         Segment a line into points 
         INPUT: vector
                file (segmentation rules) 
         OUTPUT: vector (out segmentation)
         '''
-        outSegV='%s_seg' % (inVect)
-        grass.run_command(self.__vSegment,overwrite=overWrt,input=inVect,output=outSegV,file=inFile)
-        return outSegV
+        outSegV='%s_%s' % (inVect,outSuffix)
+        retVal=grass.run_command(self.__vSegment,input=inVect,output=outSegV,file=inFile)
+        if retVal==0:
+            return outSegV
+        else:
+            return None
     
-    def convVtoR(self,inVect,colNm,overWrt=False):
+    def convVtoR(self,inVect,colNm,outNm=''):
         '''
         Convert vector to raster (v.to.rast)
         INPUT: vector
@@ -99,8 +102,11 @@ class gVect():
         OUTPUT: raster name
         '''
         #Raster naming convention is . thus replace _ with .
-        outRast=inVect.replace('_','.')
-        retVal=grass.run_command(self.__vToR,overwrite=overWrt,input=inVect,output=outRast,use='attr',column=colNm)
+        if len(outNm)>1:
+            outRast=outNm
+        else:
+            outRast=inVect.replace('_','.')
+        retVal=grass.run_command(self.__vToR,input=inVect,output=outRast,use='attr',column=colNm)
         if retVal==0:
             return outRast
         else:
@@ -110,13 +116,28 @@ class gVect():
         INPUT: inLineVect
                unitTyp (optional default=f -feet)
         OUTPUT: length'''
-        flags='pc'
-#        lenRetVal=grass.read_command(self.__vToDb,quiet=True,flags,map=inLineVect,option='length',units=unitTyp)
-        lenRetVal=grass.read_command(self.__vToDb,flags,map=inLineVect,option='length',units=unitTyp)
-        lineLength=(lenRetVal.split(':'))[1]
-        
-        return lineLength
-        
+        vectReport=self.vectReport(inLineVect, 'length', unitTyp)
+        vectLenLi=(vectReport.rstrip('\n')).split('|')
+        lineLen=vectLenLi[(len(vectLenLi)-1)]
+        return lineLen
+
+    def getPointCoords(self,inPnt):
+        '''Return the coordinate of a point vector
+        INPUT: inPnt
+        OUTPUT: coordDict'''
+        vectReport=self.vectReport(inPnt,'coor')
+        vectPntLi=vectReport.split('\n')
+        coorDict={}
+        for row in vectPntLi:
+            if ((len(row)>1) and (row.find('cat')==-1)):
+                coord=row.split('|')
+                pnt=coord[0]
+                x=coord[1]
+                y=coord[2]
+                xy='%s,%s' % (x,y)
+                coorDict[pnt]=xy
+
+        return coorDict
         
     def vectExtractEach(self,inVect,inSubNm,inVectNum,overWrt=False):
         '''
@@ -299,10 +320,11 @@ if __name__=='__main__':
        grassSect=grassConf.items('pGRASS')
     
        appVect=gVect()
-       vectDS='haw_basin10'
-       subCatAreaDict=appVect.getVectCatAreaByThreshold(vectDS)
-       pp(subCatAreaDict)
-       pp(len(subCatAreaDict))
+       vectDS='haw_catch118_stream_dams'
+       pp(appVect.getPointCoords(vectDS))
+#        subCatAreaDict=appVect.getVectCatAreaByThreshold(vectDS)
+#       pp(subCatAreaDict)
+#       pp(len(subCatAreaDict))
        
        #-- App Code end --#
        debug(end_main)

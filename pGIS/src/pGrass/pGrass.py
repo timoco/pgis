@@ -68,18 +68,7 @@ class grassApp():
         self.__grassVector=pGrassVector.gVect
      
     
-    def renameDS(self,inDS,outNm,inDSTyp='rast'):
-        '''rename a dataset'''
-        oldNew='%s,%s' % (inDS,outNm)
-        if inDSTyp == 'rast':
-            grass.run_command(self.__gRename,rast=oldNew)
-        else:
-            grass.run_command(self.__gRename,vect=oldNew)
-        return outNm
-    def createMapset(self,inMapset):
-        '''create a mapset in the current location and gisdbase'''
-        grass.run_command(self.__gMapset,'c',mapset=inMapset,location=self.__curLoc,gisdbase=self.__curGISDB)
-    
+   
     def __getCurDB(self):
         '''return the current gisDB'''
         return (grass.read_command(self.__gEnv,get='GISDBASE')).rstrip('\n')
@@ -143,6 +132,19 @@ class grassApp():
 
 
     #Public Functions
+    def renameDS(self,inDS,outNm,inDSTyp='rast'):
+        '''rename a dataset'''
+        oldNew='%s,%s' % (inDS,outNm)
+        if inDSTyp == 'rast':
+            grass.run_command(self.__gRename,rast=oldNew)
+        else:
+            grass.run_command(self.__gRename,vect=oldNew)
+        return outNm
+    
+    def createMapset(self,inMapset):
+        '''create a mapset in the current location and gisdbase'''
+        grass.run_command(self.__gMapset,'c',mapset=inMapset,location=self.__curLoc,gisdbase=self.__curGISDB)
+    
     def dsExists(self,inDS):
         ''' check to see if a dataset exists in the grassDB
         INPUT: dataset name (string)
@@ -307,7 +309,32 @@ if __name__=='__main__':
 #    pp(allV)
 #    pp(permVectL)
     pp(curMpVectList)
-    gVect.addDBCol('upperneuse_catchments', 'test', 'double precision')
+    vectDS='haw_catchments'
+    outVectDS='haw_catchments_clean'
+    #grass.run_command('v.report', map=vectDS,option='area')
+#    pp(grass.run_command('v.info','c',map=vectDS))
+#    grass.run_command('v.clean',input=vectDS,output=outVectDS,type='area',tool='rmarea',thresh=5.0)
+    
+#    gVect.dropDBCol(vectDS, 'area_sqmi') 
+#    gVect.addDBCol(vectDS, 'area_sqmi', 'double precision')
+#    gVect.addDBVal(vectDS, 'area', 'area_sqmi', 'mi')
+#   
+    vectReportRaw=gVect.vectReport(vectDS)
+    vectReportLi=vectReportRaw.split('\n')
+    subCatchDict={}
+    for vect in vectReportLi:
+        if len(vect)>1:
+            area=(vect.split('|'))[3]
+            if not area=='area':
+                cat=(vect.split('|'))[0]
+                area_flt=float(area)
+                if area_flt > 5.0:
+                    pp(cat)
+                    pp(area_flt)
+                    subCatchDict[cat]=area_flt
+                
+    pp(subCatchDict)
+    pp(len(subCatchDict))
 #    pp('CURRENT : %s' % (curMpset))
 #    pp(curMpRast)
 #   
