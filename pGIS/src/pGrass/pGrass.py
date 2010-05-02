@@ -34,6 +34,7 @@ class grassApp():
         self.__gMList='g.mlist'
         self.__gReg='g.region'
         self.__gEnv='g.gisenv'
+        self.__gCopy='g.copy'
         self.__gMapset='g.mapset'
         self.__gMapsets='g.mapsets'
         self.__gRename='g.rename'
@@ -54,6 +55,7 @@ class grassApp():
         self.__curMapset=self.__getCurMapset()
         self.__mapsets=self.__getMapsets()
         self.__rastList=self.__listDatasets('rast')
+        self.__rastListByPat=self.__listDatasets('rast')
         self.__curMapsetRastList=self.__listMapsetDatasets(self.__curMapset, 'rast')
         self.__permMapsetRastList=self.__listMapsetDatasets('PERMANENT', 'rast')
         self.__vectList=self.__listDatasets('vect')
@@ -158,6 +160,26 @@ class grassApp():
             dsExists=True
         return dsExists
     
+    def getRastListByPatternByMapset(self,pat,inMapset):
+        searchPat='%s*' % (pat)
+        dsStr=grass.read_command(self.__gMList,'m',type='rast',separator=',',pattern=searchPat,mapset=inMapset)
+        dsStr=dsStr.rstrip('\n')
+        dsList=dsStr.split(',')
+        return dsList
+    def getVectListByPatternByMapset(self,pat,inMapset):
+        searchPat='%s*' % (pat)
+        dsStr=grass.read_command(self.__gMList,'m',type='vect',separator=',',pattern=searchPat,mapset=inMapset)
+        dsStr=dsStr.rstrip('\n')
+        dsList=dsStr.split(',')
+        return dsList
+    def copyRastToMapset(self,srcRast,inRast):
+        cpyCmd='%s,%s' % (srcRast,inRast)
+        grass.run_command(self.__gCopy,rast=cpyCmd)
+    def copyVectToMapset(self,srcVect,inVect):
+        cpyCmd='%s,%s' % (srcVect,inVect)
+        grass.run_command(self.__gCopy,vect=cpyCmd)
+        
+    
     #CLASS PROPERTIES
     @property
     def getMapsets(self): 
@@ -205,6 +227,10 @@ class grassApp():
     def grassRastList(self):
         '''return the list of all Rasters in the GRASS GIS'''
         return self.__rastList
+    @property
+    def grassRastListByPat(self,pat):
+        '''return the list of all Rasters in the GRASS GIS'''
+        return self.__rastListByPat
     @property
     def grassCurMapsetRastList(self):
         '''return the list of Rasters in the current GRASS GIS mapset'''
@@ -274,327 +300,27 @@ if __name__=='__main__':
     grassSect=grassConf.items('pGRASS')
     grassGisApp=grassApp(grassSect)
     grassEnvVars=grassGisApp.grassEnv
-    grassGisApp.setCurMapset('subs')
+    grassGisApp.setCurMapset('ncResEngine')
     gRast=grassGisApp.gRaster()
     gVect=grassGisApp.gVector()
-    #test import raster
-#    gis_d=grassConf.get('data', 'gis_data')
-#    inDir=r'C:/MyDocs/projects/nc_res/Application/proto/Data/output/elev/basin/nc80'
-#    ncSecL=os.listdir(inDir)
-#    for ncSecD in ncSecL:
-#        if os.path.isdir('%s/%s'%(inDir,ncSecD)):
-#            pp(ncSecD)
-    
-#    for root,dirs,files in os.walk(inDir):
-#        for sub in dirs:
-#            pp(sub)
-#            cpCMD='%s@PERMANENT,%s' %(sub,sub)
-#            pp(cpCMD)
-#            grass.run_command('g.copy',rast=cpCMD)
-#            if not cnty.endswith('NC'):
-#                gRast.importRast(root, cnty)
-#    pp(grassGisApp.getCurMapset())   
-    pp(grassGisApp.getMapsets)
+#    pp(grassGisApp.getMapsets)
     curMpset=grassGisApp.getCurMapset()
     pp(curMpset)
     allRast=grassGisApp.grassRastList
     permMpRast=grassGisApp.grassPermRastList
     curMpRast=grassGisApp.grassCurMapsetRastList
-#    pp(curMpRast)
+    pp(curMpRast)
 #    pp(permMpRast)
 #    pp(allRast)
     allV=grassGisApp.grassVectList
     permVectL=grassGisApp.grassPermVectList
     curMpVectList=grassGisApp.grassCurMapsetVectList
-#    pp(allV)
-#    pp(permVectL)
-    pp(curMpVectList)
-    vectDS='haw_catchments'
-    outVectDS='haw_catchments_clean'
-    #grass.run_command('v.report', map=vectDS,option='area')
-#    pp(grass.run_command('v.info','c',map=vectDS))
-#    grass.run_command('v.clean',input=vectDS,output=outVectDS,type='area',tool='rmarea',thresh=5.0)
+#    pp(curMpVectList)
+    upnsVCount=len(curMpVectList)
+    pp(upnsVCount)
+#  
     
-#    gVect.dropDBCol(vectDS, 'area_sqmi') 
-#    gVect.addDBCol(vectDS, 'area_sqmi', 'double precision')
-#    gVect.addDBVal(vectDS, 'area', 'area_sqmi', 'mi')
-#   
-    vectReportRaw=gVect.vectReport(vectDS)
-    vectReportLi=vectReportRaw.split('\n')
-    subCatchDict={}
-    for vect in vectReportLi:
-        if len(vect)>1:
-            area=(vect.split('|'))[3]
-            if not area=='area':
-                cat=(vect.split('|'))[0]
-                area_flt=float(area)
-                if area_flt > 5.0:
-                    pp(cat)
-                    pp(area_flt)
-                    subCatchDict[cat]=area_flt
-                
-    pp(subCatchDict)
-    pp(len(subCatchDict))
-#    pp('CURRENT : %s' % (curMpset))
-#    pp(curMpRast)
-#   
-#    dsExist=grassGisApp.dsExists('upperneuse')
-#    pp(dsExist)
-#    retVal=grass.run_command('r.info',map='upperneuse')
-#    pp(retVal)
-#    retVal2=grass.run_command('r.info',map='upperneusexxaaaaaaaaa')
-#    pp(retVal2)
-#    gRast.setMask('upns80')
-#    vol=gRast.calcVolume('upns80')
-#    pp('Volume = %s' % (vol))
-#    surfArea=gRast.calcSurfArea('upns80')
-#    pp('Surface Area = %s' % (surfArea))
-#    surfArVolRatio=float(surfArea)/float(vol)
-#    pp('Surface Area to Volume ratio = %f' % (surfArVolRatio))
 
 
-#    cpStr='upperneuse.cnty20,upnsC20' 
-#    grass.run_command('g.copy',rast=cpStr)
-
-#    sub80R='upns80'
-#    subCnty20R='upperneuse.cnty20'
-#    sub80R='haw'
-#    subCnty20R='haw.cnty20'
-## 
-#    gRast.delMask()
-#    pp(gRast.getMask())
-#    gRast.setMask(sub80R)
-#    grassGisApp.setRegion(sub80R, 'rast')
-#    pp(grassGisApp.getRegion)
-#    pp(gRast.getMask())
-##    sub80WShedDict=gRast.calcWShedBasin(sub80R, '43560', '10', True)
-#    sub80WShedDict={}
-#    sub80WShedDict['basin']='%s.basin10' % (sub80R)
-#    sub80BsnR=sub80WShedDict['basin']
-##    bsnV=gRast.convRtoV(sub80BsnR,'area',True)
-#    bsnV=sub80BsnR.replace('.','_')
-##    gVect.addDBCol(bsnV,'area_sqmi','DOUBLE PRECISION')
-##    gVect.addDBVal(bsnV,'area','area_sqmi','mi')
-#    vReport=grass.read_command('v.report','r',map=bsnV,option='area',units='mi')
-#    pp(vReport)
-#    vReportL=vReport.split('\n')
-#    pp(vReportL)
-#    vStatsDict=gVect.vectStats(bsnV,'area_sqmi','area')
-#    pp(vStatsDict)
-#    pp(vStatsDict['n'])
-#    numV=int(vStatsDict['n'])
-#    pp(numV)
-#    vAttStr=gVect.vectSelect(bsnV)
-#    vAttL=vAttStr.split('\n')
-#    pp(vAttL)
-#    for vObj in vAttL:
-#        if len(vObj)>0:
-#            vCat=int(((vObj).split(','))[0])
-#            vArea=round(float(((vObj).split(','))[3]))
-#            if vArea in range(50,150):
-#                if vCat == 1:
-#                    pp(vCat)
-#                    pp(vArea)
-#                    bsnVObj=gVect.vectExtractEach(bsnV, vCat,True)
-#                    pp(bsnVObj)
-#                    #must set region before conversion
-#                    grassGisApp.setRegion(subCnty20R,'rast')
-#                    pp(grassGisApp.getRegion)
-#                    pp(gRast.getMask())
-#                    bsnRObj=gVect.convVtoR(bsnVObj, 'area_sqmi',True)
-#                    pp(bsnRObj)
-#                    #set the mask to rObj
-#                    gRast.setMask(bsnRObj)
-#                    pp(gRast.getMask())
-#                    #run the watershed for the sub20 with mask
-#                    sub20WShedDict=gRast.calcWatershed(subCnty20R, '696960', '10',str(vCat),True)
-#                    pp(sub20WShedDict)
-#                    #convert Streams to vect
-#                    sub20Strms=gRast.convRtoV(sub20WShedDict['stream'],'line',True)
-#                    pp(sub20Strms)
-#    pp(grassGisApp.getRegion)
-#    pp(gRast.getMask())
-#    pp('PERM')
-#    pp(permMpRast)
-#    for rst in curMpRast:
-#        if rst in permMpRast:
-##            pp('%s in MAPSETS: %s & PERMANENT : g.remove from %s' % (rst,curMpset,curMpset))
-#            grass.run_command('g.mremove','f',rast=rst)
-#            pp('%s removed from %s MAPSET' % (rst,curMpset))
-#        else:
-#            pp('%s only in in %s' % (rst,curMpset))
-
-#    
-    
-    
-#    cleanWshedVect()
-#    cleanWshed()
-
-#    def process20ft():
-    #get some vect atts
-    
-##START COMMENT OUT
-#    subV25='upperneuse_basin25'
-#    subV10='upperneuse_basin10'
-#    subR20='upperneuse.cnty20'
-#    vAttStr=gVect.vectSelect(subV10)
-#    vAttL=vAttStr.split('\n')
-#    for vObj in vAttL:
-#        if len(vObj)>0:
-#            vCat=int(((vObj).split(','))[0])
-#            vArea=round(float(((vObj).split(','))[3]))
-#            if vArea in range(5,100):
-#                if vCat == 383:     ##DEBUG
-#                    pp(vCat)
-#                    pp(vArea)
-#                    vectObj=gVect.vectExtractEach(subV10, vCat,True)
-#                    pp(vectObj)
-#                    #must set region before conversion
-#                    grassGisApp.setRegion(vectObj,'vect')
-#                    rObj=gVect.convVtoR(vectObj, 'area_sqmi',True)
-#                    pp(rObj)
-#                    #set the mask to rObj
-#                    gRast.setMask(rObj)
-#                    pp(gRast.getMask())
-#                    #run the watershed for the sub20 with mask
-#                    sub20WShedDict=gRast.calcWatershed(subR20, '696960', '10',str(vCat),True)
-#                    pp(sub20WShedDict)
-#                    #convert Streams to vect
-#                    sub20Strms=gRast.convRtoV(sub20WShedDict['stream'], 'line',True)
-#                    pp(sub20Strms)
-##    process20ft()
-#    #    pp(vAttL)
-#    #    vReport=grass.read_command('v.report','r',map='upperneuse_basin25',option='area',units='mi')
-#    #    pp(vReport)
-#    #    vReportL=vReport.split('\n')
-#    #    pp(vReportL)
-#    #    pp(grass.read_command('v.info',map='upperneuse_basin25'))
-#    #    vStats=grass.read_command('v.univar','g',map='upperneuse_basin25',col='area_sqmi',type='area')
-#    #    vStatsL=vStats.split('\n')
-#    #    pp(vStatsL)
-#    #    vStatsDict={}
-#    #    for stat in vStatsL:
-#    #        kv=stat.split('=')
-#    #        if len(kv) > 1:
-#    #            vStatsDict[kv[0]]=kv[1]
-#    #        
-#    #    pp(vStatsDict)  
-#    #    pp(vStatsDict['min'])  
-##        vStatsDict=gVect.vectStats(subV10,'area_sqmi','area')
-#    #    pp(vStatsDict)
-#    #    pp(vStatsDict['n'])
-#    #    numV=int(vStatsDict['n'])
-#    #    pp(numV)
-#       
-#
-##    def segment(self):
-#    #Test v.segment
-#    sub20Strms='upperneuse_383_strms10'
-#    vStrmReport=gVect.vectReport(sub20Strms, 'length', 'feet')
-##    vStrmReport=grass.read_command('v.report','r',map='upperneuse_basin25',option='area',units='mi')
-##    newlnCnt=vStrmReport.count('\n')
-#    vStrmReport=vStrmReport.replace('\n',';')
-#    pp(vStrmReport)
-#    vStrmReportL=((vStrmReport.split(';'))[1]).split('|')
-#    pp(vStrmReportL)
-##    vStrmReportL=vStrmReportL.split('|')
-##    pp(vStrmReportL)
-#    vStrmCat=vStrmReportL[0]
-#    vStrmLen=round(float((vStrmReportL[2])))
-#    pp(vStrmCat)
-#    pp(vStrmLen)
-#    segCnt=1
-#    segIn=''
-#    appCSVDir='C:/MyDocs/projects/nc_res/gis_data/csv' ## WILL be from pGIS
-#    segRuleFile='%s/seg.txt' % (appCSVDir) 
-#    segFile=open(segRuleFile,'wb')
-#    for vSegVal in range(1,vStrmLen,5280):
-#        segId=segCnt
-##        segCat=segCnt
-#        pp(segId)
-##        pp(segCat)
-#        pp(vSegVal)
-#        segIn='P %d %s %d \n' % (segId,vStrmCat,vSegVal)
-#        segFile.write(segIn)
-#        segCnt=segCnt+1
-##
-#    segFile.close()
-#    pp(segIn)
-#    vSegObj=gVect.segmentLine(sub20Strms, segRuleFile, True)
-##    vSegObj='upperneuse_383_strms10_seg'
-##    vStatsDict=gVect.vectStats(subV10,'area_sqmi','area')
-##    vPtObj=gVect.vectExtractEach(subV10, vCat,True)
-#   
-##    def getSegmentCoords(self,inSeg):
-##    vSegObj=inSeg
-#    vReport=gVect.vectReport(vSegObj, 'coor')
-##    grass.read_command('v.report','r',map=vSegObj,option='coor')
-#    pp(vReport)
-#    vReportL=vReport.split('\n')
-#    vSegDict={}
-#    for vSeg in vReportL:
-#        if ((not vSeg.startswith('cat')) and (len(vSeg)>0)):
-#            vSegL=vSeg.split('|')
-#            vSegCat=vSegL[0]
-#            vSegX=vSegL[1]
-#            vSegY=vSegL[2]
-#            vSegXY='%s,%s' % (vSegX,vSegY)
-#            vSegDict[vSegCat]=vSegXY
-#    
-#    pp(vSegDict)
-#    pp(grassGisApp.setRegion('upperneuse.383.basin10'))
-#    pp(grassGisApp.getRegion)
-#    gRast.setMask('upperneuse.383.basin10')
-#    pp(gRast.getMask())
-#    #Run r.Lake
-#    damLocZDict={}
-#    for pnt in vSegDict.keys():
-#        pp(vSegDict[pnt])
-#        zVal=gRast.queryRaster('upperneuse.cnty20', vSegDict[pnt])
-#        damLocZDict[pnt]=zVal
-#        
-#    pp(damLocZDict)
-#    
-##    def lake(self,inSegDict):
-##    vSegDict=inSegDict
-#    #not sure if water level is relative or absolut, ie elev + waterlvl or waterlvl
-#    rLake=gRast.fillLake('upperneuse.cnty20', 100, vSegDict['1'],True)    
-#    pp(rLake)
-##END COMMENT
-#    pp(gRast.rastStats('upperneuse.cnty20'))
-#    pp(vSegObj)
-#    vStrmReportL={}
-#    for stat in vStatsL:
-#        kv=stat.split('=')
-#        if len(kv) > 1:
-#            vStatsDict[kv[0]]=kv[1]
-
-#        if v==0:
-#            outVect='%s_%d' % (subV10,v)
-##            pp(outVect)
-#            vCat=int(((vAttL[v]).split(','))[0])
-#            vArea=round(float(((vAttL[v]).split(','))[3]))
-#            pp(vAttL[v])
-#            pp(vArea)
-#            pp(vCat)
-#            pp(outVect)
-#            vectObj=gVect.vectExtractEach(subV10, vCat)
-#            pp(vectObj)
-#    
-#            grass.run_command(self.__vExtract,input=inVect,output=outVect,list=vCat)
-#    outVect='%s_%s' % (subV10,inVectNum)
-#    vCat=int(inVectNum)
-#    grass.run_command(self.__vExtract,input=inVect,output=outVect,list=vCat)
-    #clean
-    def cleanWshedVect():
-        for wshedV in curMpVectList:
-            if not wshedV.startswith('upperneuse'):
-                pp(wshedV)   
-                grass.run_command('g.mremove','f',vect=wshedV)
-    def cleanWshed():
-        for wshedR in curMpRast:
-            if wshedR.endswith('.cnty20'):
-                pp(wshedR)   
-                grass.run_command('g.mremove','f',rast=wshedR)
     #-- App Code end --#
     debug(end_main)

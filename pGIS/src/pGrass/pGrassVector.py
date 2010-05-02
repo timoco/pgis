@@ -94,7 +94,7 @@ class gVect():
         else:
             return None
     
-    def convVtoR(self,inVect,colNm,outNm=''):
+    def convVtoR(self,inVect,val,outNm=''):
         '''
         Convert vector to raster (v.to.rast)
         INPUT: vector
@@ -106,7 +106,8 @@ class gVect():
             outRast=outNm
         else:
             outRast=inVect.replace('_','.')
-        retVal=grass.run_command(self.__vToR,input=inVect,output=outRast,use='attr',column=colNm)
+#        retVal=grass.run_command(self.__vToR,input=inVect,output=outRast,use='attr',column=colNm)
+        retVal=grass.run_command(self.__vToR,input=inVect,output=outRast,use='val',value=val)
         if retVal==0:
             return outRast
         else:
@@ -139,16 +140,17 @@ class gVect():
 
         return coorDict
         
-    def vectExtractEach(self,inVect,inSubNm,inVectNum,overWrt=False):
+    def vectExtractEach(self,inVect,inSubNm,inVectNum,vectTyp='area'):
         '''
         Extract and create new vector for each vector object (row/feature)
         INPUT: vect (subBasin catchments)
                inSub (subBasin name)
                vect num (cat num for vector object)
+               vectTyp (point,line,area,etc.. default=area)
         OUTPUT: string (new vector name)
         '''
         outVect='%s_catch%s' % (inSubNm,inVectNum)
-        retVal=grass.run_command(self.__vExtract,overwrite=overWrt,input=inVect,output=outVect,list=inVectNum)
+        retVal=grass.run_command(self.__vExtract,input=inVect,output=outVect,list=inVectNum,type=vectTyp)
         if retVal==0:
             return outVect
         else:

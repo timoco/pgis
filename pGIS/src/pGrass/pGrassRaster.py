@@ -17,6 +17,7 @@
 # #####################################
 import os
 import grass.script as grass
+import grass.script.raster as grast
 # ######################################
 #       ------ Classes --------
 # ######################################
@@ -50,6 +51,7 @@ class gRast():
         self.__rRegion='r.region'
         self.__gCopy='g.copy'   
         self.__rResample='r.resample'    
+        self.__rMapcalc='grast.mapcalc'
         #Class vals
         self.__mask='NA'
         #Class properties
@@ -100,6 +102,9 @@ class gRast():
                outRast
         OUTPUT: outRastNm'''
         retVal=grass.run_command(self.__rResample,input=inRast,output=outRast)
+#        expr='%s=%s' % (outRast,inRast)
+#        retVal=grast.mapcalc(expr)
+##        retVal=self.__rMapcalc()
         if retVal==0:
             return outRast
         else:
@@ -167,14 +172,16 @@ class gRast():
         '''Returns if a raster mask'''
         return self.__mask
     
-    def setMask(self,inMask):
-        '''
-        Sets the processing mask for raster processing (r.mask)
+    def setMask(self,inMask,cat=''):
+        '''Sets the processing mask for raster processing (r.mask)
         INPUT: map 
-        '''
+               cat (category optional default='')'''
         #first delete the mask
         self.delMask()
-        grass.run_command(self.__rMask,'o',input=inMask)
+        if len(cat)>0:
+            grass.run_command(self.__rMask,'o',input=inMask,maskcats=cat)
+        else:
+            grass.run_command(self.__rMask,'o',input=inMask)
         self.__mask=inMask
     def delMask(self):
         '''Deletes raster processing mask'''
