@@ -1,0 +1,1 @@
+pGIS is a python based GIS application framework in which various geospatial analytical functions from major GIS applications are performed. This framework utilizes installed GRASS and ArcGIS python GIS capabilities while providing integration of these platforms along with file management, logging, display, and other python utilities.
